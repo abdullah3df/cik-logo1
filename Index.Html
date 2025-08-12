@@ -4,11 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>مولّد برومبتات فيديو — Storyboard Builder</title>
+  <meta name="description" content="تطبيق بسيط لتوليد برومبتات ومشاهد فيديو (Sora/AI) في ملف واحد.">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config={darkMode:'class'}</script>
   <style>
     html{scroll-behavior:smooth}
-    .fade{animation:fade .2s ease both}@keyframes fade{from{opacity:.0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    .fade{animation:fade .2s ease both}
+    @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen">
@@ -129,36 +131,42 @@
     </div>
   </template>
 
-  <script type="module">
+  <script>
+    // Helpers
     const $ = s => document.querySelector(s)
     const $$ = s => Array.from(document.querySelectorAll(s))
-    const tpl = $('#sceneTpl')
-    const scenesEl = $('#scenes')
+    const tpl = document.getElementById('sceneTpl')
+    const scenesEl = document.getElementById('scenes')
     const state = { scenes: [] }
 
-    const setTheme = () => {
+    // Theme
+    function setTheme() {
       const root = document.documentElement
-      const dark = localStorage.getItem('theme') ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-      root.classList.toggle('dark', dark === 'dark')
+      const stored = localStorage.getItem('theme')
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      root.classList.toggle('dark', (stored ?? (prefersDark ? 'dark' : 'light')) === 'dark')
     }
     setTheme()
-    $('#themeBtn').onclick = () => {
-      const newMode = document.documentElement.classList.contains('dark') ? 'light' : 'dark'
-      localStorage.setItem('theme', newMode); setTheme()
+    document.getElementById('themeBtn').onclick = () => {
+      const dark = document.documentElement.classList.contains('dark')
+      localStorage.setItem('theme', dark ? 'light' : 'dark')
+      setTheme()
     }
-    $('#year').textContent = new Date().getFullYear()
 
+    document.getElementById('year').textContent = new Date().getFullYear()
+
+    // Scenes
     function addScene(data = {}) {
       const node = tpl.content.firstElementChild.cloneNode(true)
       scenesEl.appendChild(node)
       state.scenes.push({node})
       renumber()
-      // fill defaults
+
       node.querySelector('.dur').value   = data.dur   ?? 5
       node.querySelector('.desc').value  = data.desc  ?? ''
       node.querySelector('.cam').value   = data.cam   ?? 'slow dolly-in'
       node.querySelector('.elems').value = data.elems ?? ''
-      // actions
+
       node.querySelector('.del').onclick = ()=>{ node.remove(); state.scenes = state.scenes.filter(s=>s.node!==node); renumber() }
       node.querySelector('.dup').onclick = ()=> addScene({
         dur: node.querySelector('.dur').value,
@@ -212,24 +220,24 @@
 
     function copy(text){
       navigator.clipboard.writeText(text || '').then(()=> {
-        // small toast via title flash
-        const b = document.body; const old = document.title
+        const old = document.title
         document.title = '✓ تم النسخ'
         setTimeout(()=> document.title = old, 900)
       })
     }
 
-    $('#addScene').onclick = ()=> addScene()
-    $('#buildAll').onclick = ()=> buildAll()
-    $('#copyAll').onclick = ()=> copy($('#finalOut').value)
-    $('#downloadTxt').onclick = ()=>{
+    // Buttons
+    document.getElementById('addScene').onclick = ()=> addScene()
+    document.getElementById('buildAll').onclick = ()=> buildAll()
+    document.getElementById('copyAll').onclick = ()=> copy($('#finalOut').value)
+    document.getElementById('downloadTxt').onclick = ()=>{
       const blob = new Blob([$('#finalOut').value || buildAll()], {type:'text/plain;charset=utf-8'})
       const a = document.createElement('a')
       a.href = URL.createObjectURL(blob)
       a.download = 'storyboard_prompts.txt'
       document.body.appendChild(a); a.click(); a.remove()
     }
-    $('#clearAll').onclick = ()=>{
+    document.getElementById('clearAll').onclick = ()=>{
       scenesEl.innerHTML = ''; state.scenes = []; $('#finalOut').value=''
     }
 
@@ -237,22 +245,21 @@
     const presetRings = [
       {dur:5, desc:'زوج خواتم (ذهبي مع ألماسة + فضي) يدوران ببطء فوق خلفية بيضاء لامعة، انعكاس خفيف على سطح مرمري', cam:'macro orbit, gentle parallax', elems:'rings, marble surface, soft specular highlights'},
       {dur:5, desc:'لقطة قريبة للألماسة تلتقط ومضات ضوء ذهبية، بتلات ورد تتساقط بخفة خارج نطاق التركيز', cam:'slow push-in', elems:'diamond sparkle, falling rose petals, bokeh'},
-      {dur:5, desc:'الخاتمان يلمسان بعضهما برفق ويتوقفان بتشكيل حرف ♥ صغير، شعار/اسم بسيط أسفل الإطار', cam:'static elegant, micro jitter < 1%', elems:'subtle heart shape, minimal title safe-area'}
+      {dur:5, desc:'الخاتمان يلمسان بعضهما برفق ويتوقفان بتشكيل ♥ بسيط، اسم/شعار صغير أسفل الإطار', cam:'static elegant, micro jitter < 1%', elems:'subtle heart shape, minimal title safe-area'}
     ]
     const presetHands = [
       {dur:6, desc:'يد العريس (بدون ملامح وجه) تمتد من اليمين ويد العروس من اليسار، الخلفية بيضاء ناعمة، يقتربان ببطء', cam:'centered, slow dolly-in', elems:'hands only, elegant sleeves, soft rim light'},
       {dur:6, desc:'لقطة أقرب للتماس الأيدي، خاتم العروس الذهبي يلمع بإضاءة ناعمة، عمق ميدان ضحل', cam:'macro close-up', elems:'ring sparkle, creamy bokeh, soft glow'}
     ]
     const presetRoses = [
-      {dur:5, desc:'إطار ورد ثلاثي الأبعاد أنيق (أبيض وأحمر قليل) حول مساحة فارغة نظيفة، ورقة ذهبية رفيعة مستطيلة في الوسط', cam:'slight top-down, slow drift', elems:'3D floral frame, minimal gold border, empty center'},
+      {dur:5, desc:'إطار ورد ثلاثي الأبعاد أنيق (أبيض وأحمر قليل) حول مساحة فارغة نظيفة، إطار ذهبي رفيع في الوسط', cam:'slight top-down, slow drift', elems:'3D floral frame, minimal gold border, empty center'},
       {dur:5, desc:'تكبير خفيف نحو المركز لإبراز مساحة النص، بتلات متفرقة خارج الحافة لا تغطي الوسط', cam:'slow push-in', elems:'clean negative space, selective focus'}
     ]
 
     function addPreset(arr){ arr.forEach(s=> addScene(s)) }
-
-    $('#addPresetRings').onclick = ()=> addPreset(presetRings)
-    $('#addPresetHands').onclick = ()=> addPreset(presetHands)
-    $('#addPresetRoses').onclick = ()=> addPreset(presetRoses)
+    document.getElementById('addPresetRings').onclick = ()=> addPreset(presetRings)
+    document.getElementById('addPresetHands').onclick = ()=> addPreset(presetHands)
+    document.getElementById('addPresetRoses').onclick = ()=> addPreset(presetRoses)
 
     // Boot with one empty scene
     addScene()
