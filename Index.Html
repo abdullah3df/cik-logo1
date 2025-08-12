@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>مولّد برومبتات فيديو — Storyboard Builder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={darkMode:'class'}</script>
+  <style>
+    html{scroll-behavior:smooth}
+    .fade{animation:fade .2s ease both}@keyframes fade{from{opacity:.0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen">
+  <!-- Header -->
+  <header class="sticky top-0 z-40 border-b border-gray-200/70 dark:border-gray-800/70 bg-white/70 dark:bg-gray-900/70 backdrop-blur">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-rose-500 to-fuchsia-600"></div>
+        <h1 class="text-lg font-semibold">مولّد برومبتات فيديو</h1>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="themeBtn" class="px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800">☾/☀︎</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+    <!-- Global Settings -->
+    <section class="fade rounded-2xl border border-gray-200 dark:border-gray-800 p-4 bg-white/80 dark:bg-gray-900/60 space-y-4">
+      <h2 class="text-xl font-bold">الإعدادات العامة</h2>
+      <div class="grid md:grid-cols-3 gap-3">
+        <div>
+          <label class="block text-sm mb-1">أسماء/عنوان (اختياري)</label>
+          <input id="names" class="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800 border border-transparent focus:outline-none focus:ring-2 focus:ring-fuchsia-500" placeholder="مثال: عبدالله & براءة • Engagement">
+        </div>
+        <div>
+          <label class="block text-sm mb-1">أبعاد الفيديو</label>
+          <select id="aspect" class="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800">
+            <option value="1080x1920">عمودي 1080×1920 (TikTok)</option>
+            <option value="1920x1080">أفقي 1920×1080</option>
+            <option value="1440x1920">عمودي 1440×1920 (تفاصيل أعلى)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm mb-1">الستايل العام</label>
+          <select id="style" class="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800">
+            <option value="luxury minimal, soft whites, delicate gold accents, shallow depth of field, cinematic lighting, clean background">فاخر ناعم (أبيض/ذهبي)</option>
+            <option value="romantic pastel, soft bokeh, airy light, creamy tones">رومانسي باستيل</option>
+            <option value="high-contrast cinematic, dramatic lighting, elegant shadows">سينمائي حاد</option>
+            <option value="studio product look, glossy surfaces, immaculate detail">ستايل ستوديو/منتج</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <button id="addPresetRings" class="px-3 py-2 rounded-xl bg-fuchsia-600 text-white hover:opacity-90">إضافة قالب: خواتم راقصة</button>
+        <button id="addPresetHands" class="px-3 py-2 rounded-xl bg-rose-600 text-white hover:opacity-90">قالب: اقتراب الأيدي</button>
+        <button id="addPresetRoses" class="px-3 py-2 rounded-xl bg-violet-600 text-white hover:opacity-90">قالب: إطار ورد فاخر</button>
+        <button id="clearAll" class="px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">مسح الكل</button>
+      </div>
+    </section>
+
+    <!-- Scenes -->
+    <section class="fade rounded-2xl border border-gray-200 dark:border-gray-800 p-4 bg-white/80 dark:bg-gray-900/60">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-xl font-bold">المشاهد</h2>
+        <button id="addScene" class="px-3 py-2 rounded-xl bg-indigo-600 text-white hover:opacity-90">+ إضافة مشهد</button>
+      </div>
+      <div id="scenes" class="space-y-3"></div>
+    </section>
+
+    <!-- Output -->
+    <section class="fade rounded-2xl border border-gray-200 dark:border-gray-800 p-4 bg-white/80 dark:bg-gray-900/60 space-y-3">
+      <h2 class="text-xl font-bold">المخرجات</h2>
+      <div class="flex flex-wrap gap-2">
+        <button id="buildAll" class="px-3 py-2 rounded-xl bg-emerald-600 text-white hover:opacity-90">تجميع البرومبت النهائي</button>
+        <button id="copyAll" class="px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">نسخ</button>
+        <button id="downloadTxt" class="px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">تنزيل TXT</button>
+      </div>
+      <textarea id="finalOut" rows="8" class="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800" placeholder="سيظهر هنا البرومبت النهائي لكل المشاهد…"></textarea>
+      <p class="text-xs text-gray-500">انسخ السطور إلى Sora أو أي مولّد فيديو. يمكنك تعديل النص قبل النسخ.</p>
+    </section>
+
+    <p class="text-center text-sm text-gray-500">© <span id="year"></span> Storyboard Builder — ملف واحد فقط.</p>
+  </main>
+
+  <!-- Template for a scene card -->
+  <template id="sceneTpl">
+    <div class="scene rounded-xl border border-gray-200 dark:border-gray-800 p-4 bg-white/70 dark:bg-gray-900/50">
+      <div class="flex items-start gap-3">
+        <div class="flex-1 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="font-semibold">مشهد <span class="scene-index"></span></div>
+            <div class="flex items-center gap-2">
+              <button class="dup px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-sm">استنساخ</button>
+              <button class="del px-3 py-1.5 rounded-lg bg-rose-600 text-white hover:opacity-90 text-sm">حذف</button>
+            </div>
+          </div>
+          <div class="grid md:grid-cols-4 gap-3">
+            <div class="md:col-span-1">
+              <label class="block text-sm mb-1">المدة (ث)</label>
+              <input class="dur w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800" type="number" min="1" max="12" value="5">
+            </div>
+            <div class="md:col-span-3">
+              <label class="block text-sm mb-1">وصف بصري مُركّز</label>
+              <input class="desc w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800" placeholder="مثال: خاتم ذهبي مع ألماسة على سطح أبيض لامع…">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm mb-1">حركة الكاميرا</label>
+              <input class="cam w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800" placeholder="slow dolly-in, gentle orbit, macro close-up">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm mb-1">عناصر أساسية (قائمة مفصولة بفواصل)</label>
+              <input class="elems w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800" placeholder="rings, rose petals, soft glow, hand silhouettes">
+            </div>
+            <div class="md:col-span-4">
+              <label class="block text-sm mb-1">مخرجات المشهد</label>
+              <textarea class="out w-full h-28 px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800" placeholder="سيظهر البرومبت لهذا المشهد بعد الضغط على توليد…"></textarea>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button class="build px-3 py-2 rounded-xl bg-indigo-600 text-white hover:opacity-90">توليد برومبت المشهد</button>
+            <button class="copy px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">نسخ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script type="module">
+    const $ = s => document.querySelector(s)
+    const $$ = s => Array.from(document.querySelectorAll(s))
+    const tpl = $('#sceneTpl')
+    const scenesEl = $('#scenes')
+    const state = { scenes: [] }
+
+    const setTheme = () => {
+      const root = document.documentElement
+      const dark = localStorage.getItem('theme') ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      root.classList.toggle('dark', dark === 'dark')
+    }
+    setTheme()
+    $('#themeBtn').onclick = () => {
+      const newMode = document.documentElement.classList.contains('dark') ? 'light' : 'dark'
+      localStorage.setItem('theme', newMode); setTheme()
+    }
+    $('#year').textContent = new Date().getFullYear()
+
+    function addScene(data = {}) {
+      const node = tpl.content.firstElementChild.cloneNode(true)
+      scenesEl.appendChild(node)
+      state.scenes.push({node})
+      renumber()
+      // fill defaults
+      node.querySelector('.dur').value   = data.dur   ?? 5
+      node.querySelector('.desc').value  = data.desc  ?? ''
+      node.querySelector('.cam').value   = data.cam   ?? 'slow dolly-in'
+      node.querySelector('.elems').value = data.elems ?? ''
+      // actions
+      node.querySelector('.del').onclick = ()=>{ node.remove(); state.scenes = state.scenes.filter(s=>s.node!==node); renumber() }
+      node.querySelector('.dup').onclick = ()=> addScene({
+        dur: node.querySelector('.dur').value,
+        desc: node.querySelector('.desc').value,
+        cam: node.querySelector('.cam').value,
+        elems: node.querySelector('.elems').value
+      })
+      node.querySelector('.build').onclick = ()=> buildOne(node)
+      node.querySelector('.copy').onclick = ()=> copy(node.querySelector('.out').value)
+    }
+
+    function renumber(){
+      $$('.scene').forEach((el,i)=> el.querySelector('.scene-index').textContent = i+1)
+    }
+
+    function buildOne(node){
+      const names = $('#names').value.trim()
+      const aspect = $('#aspect').value
+      const style  = $('#style').value
+      const dur    = Number(node.querySelector('.dur').value || 5)
+      const desc   = node.querySelector('.desc').value.trim()
+      const cam    = node.querySelector('.cam').value.trim()
+      const elems  = node.querySelector('.elems').value.trim()
+
+      const prompt = [
+        names ? `Title: ${names}` : '',
+        `Resolution: ${aspect}`,
+        `Visual style: ${style}`,
+        `Duration: ~${dur}s`,
+        desc && `Primary visuals: ${desc}`,
+        cam && `Camera: ${cam}`,
+        elems && `Key elements: ${elems}`,
+        `Lighting: soft, elegant, tasteful; no visible faces unless hands only`,
+        `Shot: clean composition, premium look, minimal background clutter`
+      ].filter(Boolean).join('\n')
+
+      node.querySelector('.out').value = prompt
+      return prompt
+    }
+
+    function buildAll(){
+      const parts = []
+      $$('.scene').forEach(node=>{
+        const txt = buildOne(node)
+        parts.push('--- SCENE ---\n'+txt)
+      })
+      const full = parts.join('\n\n')
+      $('#finalOut').value = full
+      return full
+    }
+
+    function copy(text){
+      navigator.clipboard.writeText(text || '').then(()=> {
+        // small toast via title flash
+        const b = document.body; const old = document.title
+        document.title = '✓ تم النسخ'
+        setTimeout(()=> document.title = old, 900)
+      })
+    }
+
+    $('#addScene').onclick = ()=> addScene()
+    $('#buildAll').onclick = ()=> buildAll()
+    $('#copyAll').onclick = ()=> copy($('#finalOut').value)
+    $('#downloadTxt').onclick = ()=>{
+      const blob = new Blob([$('#finalOut').value || buildAll()], {type:'text/plain;charset=utf-8'})
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = 'storyboard_prompts.txt'
+      document.body.appendChild(a); a.click(); a.remove()
+    }
+    $('#clearAll').onclick = ()=>{
+      scenesEl.innerHTML = ''; state.scenes = []; $('#finalOut').value=''
+    }
+
+    // Presets
+    const presetRings = [
+      {dur:5, desc:'زوج خواتم (ذهبي مع ألماسة + فضي) يدوران ببطء فوق خلفية بيضاء لامعة، انعكاس خفيف على سطح مرمري', cam:'macro orbit, gentle parallax', elems:'rings, marble surface, soft specular highlights'},
+      {dur:5, desc:'لقطة قريبة للألماسة تلتقط ومضات ضوء ذهبية، بتلات ورد تتساقط بخفة خارج نطاق التركيز', cam:'slow push-in', elems:'diamond sparkle, falling rose petals, bokeh'},
+      {dur:5, desc:'الخاتمان يلمسان بعضهما برفق ويتوقفان بتشكيل حرف ♥ صغير، شعار/اسم بسيط أسفل الإطار', cam:'static elegant, micro jitter < 1%', elems:'subtle heart shape, minimal title safe-area'}
+    ]
+    const presetHands = [
+      {dur:6, desc:'يد العريس (بدون ملامح وجه) تمتد من اليمين ويد العروس من اليسار، الخلفية بيضاء ناعمة، يقتربان ببطء', cam:'centered, slow dolly-in', elems:'hands only, elegant sleeves, soft rim light'},
+      {dur:6, desc:'لقطة أقرب للتماس الأيدي، خاتم العروس الذهبي يلمع بإضاءة ناعمة، عمق ميدان ضحل', cam:'macro close-up', elems:'ring sparkle, creamy bokeh, soft glow'}
+    ]
+    const presetRoses = [
+      {dur:5, desc:'إطار ورد ثلاثي الأبعاد أنيق (أبيض وأحمر قليل) حول مساحة فارغة نظيفة، ورقة ذهبية رفيعة مستطيلة في الوسط', cam:'slight top-down, slow drift', elems:'3D floral frame, minimal gold border, empty center'},
+      {dur:5, desc:'تكبير خفيف نحو المركز لإبراز مساحة النص، بتلات متفرقة خارج الحافة لا تغطي الوسط', cam:'slow push-in', elems:'clean negative space, selective focus'}
+    ]
+
+    function addPreset(arr){ arr.forEach(s=> addScene(s)) }
+
+    $('#addPresetRings').onclick = ()=> addPreset(presetRings)
+    $('#addPresetHands').onclick = ()=> addPreset(presetHands)
+    $('#addPresetRoses').onclick = ()=> addPreset(presetRoses)
+
+    // Boot with one empty scene
+    addScene()
+  </script>
+</body>
+</html>
