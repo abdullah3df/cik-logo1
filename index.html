@@ -2,13 +2,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>بطاقات الدول — ستايل ويدجت تفاعلي</title>
+  <title>بطاقات الدول — الوقت • الطقس • العملة (محدّث كامل)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     html, body { height: 100%; }
     body { background: #0b1220; }
-    .card-base { position: relative; border-radius: 28px; overflow: hidden; transition: transform .25s ease, box-shadow .25s ease; }
-    .card-base:hover { transform: scale(1.04); box-shadow: 0 15px 40px rgba(0,0,0,.45); z-index:10; }
+    .card-base { position: relative; border-radius: 28px; overflow: hidden; transition: transform .22s ease, box-shadow .22s ease; }
+    .card-base:hover { transform: scale(1.035); box-shadow: 0 16px 44px rgba(0,0,0,.48); z-index:10; }
     .corner { position:absolute; width:120px; height:120px; background:rgba(0,0,0,.25); border-radius:50%; }
     .corner.tl{ top:-60px; right:-60px; }
     .corner.br{ bottom:-60px; left:-60px; }
@@ -29,50 +29,82 @@
   </header>  <main class="max-w-7xl mx-auto p-4">
     <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
   </main>  <script>
-    // ================= إعداد الدول مع لون مميز =================
+    // ================= إعداد الدول: لون خاص + رمز تعبيري (رمزية البلد) =================
+    // يمكنك إضافة دول جديدة بسهولة. املأ: code, name, tz, lat, lon, currency, theme, flag, symbol.
     const COUNTRIES = [
-      { code:'DE', name:'ألمانيا', tz:'Europe/Berlin', lat:52.52, lon:13.405, currency:{code:'EUR', symbol:'€', name:'اليورو'}, color:'#2563eb', flag:'de' },
-      { code:'TR', name:'تركيا', tz:'Europe/Istanbul', lat:41.015137, lon:28.97953, currency:{code:'TRY', symbol:'₺', name:'الليرة التركية'}, color:'#e11d48', flag:'tr' },
-      { code:'SA', name:'السعودية', tz:'Asia/Riyadh', lat:24.7136, lon:46.6753, currency:{code:'SAR', symbol:'﷼', name:'الريال السعودي'}, color:'#16a34a', flag:'sa' },
-      { code:'AE', name:'الإمارات', tz:'Asia/Dubai', lat:25.2048, lon:55.2708, currency:{code:'AED', symbol:'د.إ', name:'الدرهم الإماراتي'}, color:'#0ea5e9', flag:'ae' },
-      { code:'EG', name:'مصر', tz:'Africa/Cairo', lat:30.0444, lon:31.2357, currency:{code:'EGP', symbol:'£', name:'الجنيه المصري'}, color:'#f59e0b', flag:'eg' },
-      { code:'GB', name:'بريطانيا', tz:'Europe/London', lat:51.5072, lon:-0.1276, currency:{code:'GBP', symbol:'£', name:'الجنيه الإسترليني'}, color:'#9333ea', flag:'gb' },
-      { code:'JP', name:'اليابان', tz:'Asia/Tokyo', lat:35.6762, lon:139.6503, currency:{code:'JPY', symbol:'¥', name:'الين الياباني'}, color:'#ef4444', flag:'jp' },
-      { code:'US', name:'أمريكا', tz:'America/New_York', lat:40.7128, lon:-74.0060, currency:{code:'USD', symbol:'$', name:'الدولار الأمريكي'}, color:'#3b82f6', flag:'us' },
+      { code:'DE', name:'ألمانيا', tz:'Europe/Berlin', lat:52.52, lon:13.405, currency:{code:'EUR', symbol:'€', name:'اليورو'}, theme:{from:'#1d4ed8', to:'#0ea5e9'}, flag:'de', symbol:'🟫🏛️' }, // بوابة براندنبورغ (رمزي)
+      { code:'TR', name:'تركيا', tz:'Europe/Istanbul', lat:41.015137, lon:28.97953, currency:{code:'TRY', symbol:'₺', name:'الليرة التركية'}, theme:{from:'#be123c', to:'#ef4444'}, flag:'tr', symbol:'🕌' },
+      { code:'SA', name:'السعودية', tz:'Asia/Riyadh', lat:24.7136, lon:46.6753, currency:{code:'SAR', symbol:'﷼', name:'الريال السعودي'}, theme:{from:'#065f46', to:'#10b981'}, flag:'sa', symbol:'🕋' },
+      { code:'AE', name:'الإمارات', tz:'Asia/Dubai', lat:25.2048, lon:55.2708, currency:{code:'AED', symbol:'د.إ', name:'الدرهم الإماراتي'}, theme:{from:'#047857', to:'#22c55e'}, flag:'ae', symbol:'🏙️' },
+      { code:'EG', name:'مصر', tz:'Africa/Cairo', lat:30.0444, lon:31.2357, currency:{code:'EGP', symbol:'£', name:'الجنيه المصري'}, theme:{from:'#b91c1c', to:'#f59e0b'}, flag:'eg', symbol:'🗿' }, // الأهرام (رمزي)
+      { code:'GB', name:'بريطانيا', tz:'Europe/London', lat:51.5072, lon:-0.1276, currency:{code:'GBP', symbol:'£', name:'الجنيه الإسترليني'}, theme:{from:'#3730a3', to:'#1e40af'}, flag:'gb', symbol:'🕰️' }, // بيغ بن رمزي
+      { code:'JP', name:'اليابان', tz:'Asia/Tokyo', lat:35.6762, lon:139.6503, currency:{code:'JPY', symbol:'¥', name:'الين الياباني'}, theme:{from:'#b91c1c', to:'#ef4444'}, flag:'jp', symbol:'🗻' },
+      { code:'US', name:'أمريكا', tz:'America/New_York', lat:40.7128, lon:-74.0060, currency:{code:'USD', symbol:'$', name:'الدولار الأمريكي'}, theme:{from:'#0ea5e9', to:'#3b82f6'}, flag:'us', symbol:'🗽' },
+      { code:'FR', name:'فرنسا', tz:'Europe/Paris', lat:48.8566, lon:2.3522, currency:{code:'EUR', symbol:'€', name:'اليورو'}, theme:{from:'#0055A4', to:'#EF4135'}, flag:'fr', symbol:'🗼' },
+      { code:'CH', name:'سويسرا', tz:'Europe/Zurich', lat:47.3769, lon:8.5417, currency:{code:'CHF', symbol:'Fr', name:'الفرنك السويسري'}, theme:{from:'#D52B1E', to:'#8B0000'}, flag:'ch', symbol:'⛰️' },
     ];
 
     const gridEl = document.getElementById('grid');
     const searchEl = document.getElementById('search');
     const refreshBtn = document.getElementById('refreshBtn');
 
-    function gradient(color){
-      return `linear-gradient(180deg, ${color} 0%, rgba(2,6,23,0.85) 100%)`;
+    function gradient(theme, night=false){
+      const from = night ? '#0f172a' : theme.from; // داكن أكثر لليل
+      const to   = night ? '#0b1220' : theme.to;
+      return `linear-gradient(180deg, ${from} 0%, ${to} 68%, rgba(2,6,23,0.95) 120%)`;
     }
 
-    function weatherIcon(temp){
-      if(temp === null) return '❓';
-      if(temp < 5) return '❄️';
-      if(temp < 18) return '☁️';
-      if(temp < 28) return '🌤️';
-      return '🔥';
+    // ===== أيقونات SVG حسب weathercode من Open‑Meteo =====
+    function iconSVGByWeather(code, is_day){
+      const sun = `<circle cx='50' cy='50' r='24' fill='#facc15'/>`;
+      const moon = `<path d='M64 50a22 22 0 1 1-28-28a24 24 0 1 0 28 28z' fill='#e5e7eb'/>`;
+      const cloud = `<ellipse cx='52' cy='60' rx='26' ry='16' fill='white'/><ellipse cx='36' cy='62' rx='18' ry='12' fill='white'/>`;
+      const rain = `${cloud}<g stroke='white' stroke-width='3'><line x1='40' y1='74' x2='36' y2='86'/><line x1='52' y1='74' x2='48' y2='86'/><line x1='64' y1='74' x2='60' y2='86'/></g>`;
+      const snow = `${cloud}<g fill='white'><text x='38' y='84' font-size='18'>❄</text><text x='54' y='84' font-size='18'>❄</text></g>`;
+      const storm = `${cloud}<path d='M54 70 l-10 20 h10 l-6 16 l18-24 h-12 l8-12z' fill='#fde047'/>`;
+      const fog = `<g fill='white'>${cloud}</g><g stroke='white' stroke-width='3' opacity='0.8'><line x1='28' y1='86' x2='76' y2='86'/><line x1='24' y1='92' x2='80' y2='92'/></g>`;
+
+      const sky = is_day ? sun : moon;
+      if(code === 0) return `<svg viewBox='0 0 100 100'>${sky}</svg>`; // صافٍ
+      if([1,2].includes(code)) return `<svg viewBox='0 0 100 100'>${sky}${cloud}</svg>`; // قليل/متوسط غيوم
+      if(code===3) return `<svg viewBox='0 0 100 100'>${cloud}</svg>`; // غيوم كثيفة
+      if([45,48].includes(code)) return `<svg viewBox='0 0 100 100'>${fog}</svg>`; // ضباب
+      if((code>=51 && code<=57) || (code>=61 && code<=67) || (code>=80 && code<=82)) return `<svg viewBox='0 0 100 100'>${rain}</svg>`; // مطر/رذاذ
+      if((code>=71 && code<=77) || (code>=85 && code<=86)) return `<svg viewBox='0 0 100 100'>${snow}</svg>`; // ثلج
+      if(code===95 || (code>=96 && code<=99)) return `<svg viewBox='0 0 100 100'>${storm}</svg>`; // عواصف
+      return `<svg viewBox='0 0 100 100'>${cloud}</svg>`; // افتراضي
     }
 
     function createCard(country){
       const card = document.createElement('article');
       card.className = 'card-base border border-slate-800';
-      card.style.background = gradient(country.color);
       card.style.minHeight = '240px';
       card.dataset.countryName = country.name;
+
+      // حواف زخرفية
+      const c1 = document.createElement('div'); c1.className='corner tl';
+      const c2 = document.createElement('div'); c2.className='corner br';
 
       const pad = document.createElement('div');
       pad.className = 'absolute inset-0 p-5';
 
-      // أيقونة الطقس حسب الحرارة
+      // أيقونة الطقس (SVG)
       const iconEl = document.createElement('div');
-      iconEl.className = 'absolute text-6xl';
+      iconEl.className = 'absolute';
       iconEl.style.left='20px';
-      iconEl.style.top='22px';
-      iconEl.textContent = '—';
+      iconEl.style.top='18px';
+      iconEl.style.width='72px';
+      iconEl.style.height='72px';
+      iconEl.innerHTML = `<svg viewBox='0 0 100 100'><circle cx='50' cy='50' r='22' fill='#fcd34d'/></svg>`;
+
+      // رمز الدولة (إيموجي/أيقونة) كنقش زخرفي نصف شفاف أسفل اليسار
+      const countrySymbol = document.createElement('div');
+      countrySymbol.className = 'absolute select-none';
+      countrySymbol.style.left = '20px';
+      countrySymbol.style.bottom = '78px';
+      countrySymbol.style.fontSize = '42px';
+      countrySymbol.style.opacity = '0.8';
+      countrySymbol.textContent = country.symbol || '';
 
       // أعلى اليمين — الحرارة + الدولة
       const topRight = document.createElement('div');
@@ -109,8 +141,16 @@
       pad.appendChild(topRight);
       pad.appendChild(bottomLeft);
       pad.appendChild(bottomRight);
+      pad.appendChild(countrySymbol);
 
       card.appendChild(pad);
+      card.appendChild(c1); card.appendChild(c2);
+
+      // تفاعل عند الضغط (تكبير لحظي)
+      card.addEventListener('click',()=>{
+        card.style.transform = 'scale(1.06)';
+        setTimeout(()=>{ card.style.transform=''; }, 170);
+      });
 
       card._refs = {
         time: bottomLeft.querySelector('[data-time]'),
@@ -132,6 +172,9 @@
       }
       tick(); setInterval(tick, 1000);
 
+      // خلفية أولية نهارية
+      card.style.background = gradient(country.theme, false);
+
       return card;
     }
 
@@ -145,35 +188,52 @@
       });
     }
 
+    // ====== الطقس + الغروب (weathercode) من Open‑Meteo ======
     async function fetchWeatherAndSun(country){
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${country.lat}&longitude=${country.lon}&current_weather=true&daily=sunset&timezone=${encodeURIComponent(country.tz)}`;
       const r = await fetch(url);
+      if(!r.ok) throw new Error('weather http '+r.status);
       const data = await r.json();
-      const temp = data?.current_weather?.temperature ?? null;
+      const cw = data?.current_weather || {};
+      const temp = cw.temperature ?? null;
+      const code = cw.weathercode ?? null;
+      const is_day = cw.is_day === 1; // 1 نهار، 0 ليل
       const sunsetISO = data?.daily?.sunset?.[0] ?? null;
-      return { temp, sunsetISO };
+      return { temp, code, is_day, sunsetISO };
     }
 
     async function updateAllWeather(){
       await Promise.all(COUNTRIES.map(async (c)=>{
         const el = cardMap.get(c.code);
         try{
-          const {temp, sunsetISO} = await fetchWeatherAndSun(c);
+          const {temp, code, is_day, sunsetISO} = await fetchWeatherAndSun(c);
+          // حرارة
           el._refs.temp.textContent = (temp!==null? Math.round(temp): '—') + '°';
-          el._refs.icon.textContent = weatherIcon(temp);
+          // أيقونة + خلفية ليلية/نهارية
+          el._refs.icon.innerHTML = iconSVGByWeather(code ?? 3, !!is_day);
+          el.style.background = gradient(c.theme, !is_day);
+          // غروب
           if(sunsetISO){
             const t = new Date(sunsetISO);
             el._refs.sunset.textContent = `غروب الشمس: ${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}`;
+          } else {
+            el._refs.sunset.textContent = 'غروب الشمس: —';
           }
-        }catch(e){ el._refs.temp.textContent='—°'; el._refs.sunset.textContent='غروب الشمس: —'; el._refs.icon.textContent='❓'; }
+        }catch(e){
+          el._refs.temp.textContent='—°';
+          el._refs.sunset.textContent='غروب الشمس: —';
+          el._refs.icon.innerHTML = iconSVGByWeather(3, true);
+        }
       }));
     }
 
+    // ====== أسعار الصرف (exchangerate.host) ======
     function collectSymbols(){ const s=new Set(); COUNTRIES.forEach(c=>s.add(c.currency.code)); s.delete('USD'); return [...s]; }
     async function fetchRates(){
       const symbols = collectSymbols();
       if(symbols.length===0) return {};
       const r = await fetch(`https://api.exchangerate.host/latest?base=USD&symbols=${symbols.join(',')}`);
+      if(!r.ok) throw new Error('fx http '+r.status);
       const data = await r.json(); return data?.rates||{};
     }
     async function updateAllFX(){
@@ -182,14 +242,18 @@
         const el = cardMap.get(c.code);
         if(c.currency.code==='USD'){ el._refs.fx.textContent = '1 USD = 1.0000 USD'; return; }
         const perUSD = rates[c.currency.code];
-        if(typeof perUSD==='number' && perUSD>0){ el._refs.fx.textContent = `1 USD = ${perUSD.toLocaleString('ar-EG',{maximumFractionDigits:4})} ${c.currency.code}`; }
+        if(typeof perUSD==='number' && perUSD>0){
+          el._refs.fx.textContent = `1 USD = ${perUSD.toLocaleString('ar-EG',{maximumFractionDigits:4})} ${c.currency.code}`;
+        }else{ el._refs.fx.textContent = `1 USD = — ${c.currency.code}`; }
       });
     }
 
+    // ====== بحث ======
     searchEl.addEventListener('input',()=>{
-      const q = searchEl.value.trim();
+      const q = searchEl.value.trim().toLowerCase();
       gridEl.querySelectorAll('article').forEach(el=>{
-        const show = (el.dataset.countryName||'').includes(q);
+        const name = (el.dataset.countryName||'').toLowerCase();
+        const show = name.includes(q);
         el.style.display = show ? '' : 'none';
       });
     });
