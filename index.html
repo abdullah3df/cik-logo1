@@ -105,52 +105,29 @@
 
     // ===== مصدر الأخبار: Google News RSS عبر AllOrigins (بدون مفتاح) =====
     async function fetchCountryHeadlines(code){
-      // نبني خلاصة بالعربية إن وُجدت، وإلا نرجع لنسخة إنجليزية عامة
       const cc = (code||'').toUpperCase();
-      const rss = `https://news.google.com/rss?hl=ar&gl=${cc}&ceid=${cc}:ar`;
-      const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(rss)}`;
-      try{
-        const resp = await fetch(url);
-        if(!resp.ok) throw new Error('rss http '+resp.status);
-        const xml = await resp.text();
-        const doc = new DOMParser().parseFromString(xml, 'text/xml');
-        const items = [...doc.querySelectorAll('item > title')].slice(0,8).map(n=> n.textContent.trim());
-        if(items.length) return items;
-      }catch(e){ /* fallback below */ }
-      // احتياطي: نسخة إنجليزية عامة للبلد
-      const rss2 = `https://news.google.com/rss?hl=en&gl=${cc}&ceid=${cc}:en`;
-      try{
-        const resp2 = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(rss2)}`);
-        if(!resp2.ok) return [];
-        const xml2 = await resp2.text();
-        const doc2 = new DOMParser().parseFromString(xml2, 'text/xml');
-        return [...doc2.querySelectorAll('item > title')].slice(0,8).map(n=> n.textContent.trim());
-      }catch{ return []; }
+      const rssAR = `https://news.google.com/rss?hl=ar&gl=${cc}&ceid=${cc}:ar`;
+      const rssEN = `https://news.google.com/rss?hl=en&gl=${cc}&ceid=${cc}:en`;
+      const endpoints = [
+        // 1) AllOrigins (raw) → RSS XML
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(rssAR)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(rssEN)}`,
+        // 2) Jina Reader proxy كخطة بديلة (يعيد النص كما هو)
+        `https://r.jina.ai/http://news.google.com/rss?hl=ar&gl=${cc}&ceid=${cc}:ar`,
+        `https://r.jina.ai/http://news.google.com/rss?hl=en&gl=${cc}&ceid=${cc}:en`
+      ];
+      for(const url of endpoints){
+        try{
+          const resp = await fetch(url);
+          if(!resp.ok) continue;
+          const xml = await resp.text();
+          const doc = new DOMParser().parseFromString(xml, 'text/xml');
+          const titles = [...doc.querySelectorAll('item > title')].map(n=> n.textContent.trim()).filter(Boolean);
+          if(titles.length) return titles.slice(0,8);
+        }catch(e){ /* حاول التالي */ }
+      }
+      return [];
     }
-
-    // ===== إنشاء البطاقة =====
-    function createCard(country){
-      const card = document.createElement('article');
-      card.className = 'card-base';
-      card.dataset.expanded = '0';
-      card.style.minHeight = '0';
-      card.style.background = gradient(country.theme, false);
-      card.dataset.countryName = country.name + ' ' + country.currency.code + ' ' + (country.region||'');
-
-      // corners
-      const c1 = document.createElement('div'); c1.className='corner tl';
-      const c2 = document.createElement('div'); c2.className='corner br';
-
-      const pad = document.createElement('div');
-      pad.className = 'absolute inset-0 p-5';
-
-      // أيقونة الطقس
-      const iconEl = document.createElement('div');
-      iconEl.className = 'absolute detail';
-      iconEl.style.left='20px'; iconEl.style.top='18px'; iconEl.style.width='72px'; iconEl.style.height='72px';
-      iconEl.innerHTML = `<svg viewBox='0 0 100 100'><circle cx='50' cy='50' r='22' fill='#fcd34d'/></svg>`;
-
-      // عنوان أعلى اليمين (يظهر دومًا حتى عند الطي)
       const topRight = document.createElement('div');
       topRight.className = 'absolute flex items-center gap-2';
       topRight.style.right = '20px'; topRight.style.top = '18px';
@@ -207,6 +184,27 @@
       card.addEventListener('click', async ()=>{
         const expanded = card.dataset.expanded === '1';
         card.style.transform = 'scale(1.03)'; setTimeout(()=> card.style.transform='', 160);
+        card.dataset.expanded = expanded ? '0' : '1';
+        if(!expanded){
+          // فتح الآن: حضّر نص مؤقت ثم اجلب
+          const track = newsBar.querySelector('[data-news]');
+          const dup = newsBar.querySelector('[data-news-dup]');
+          track.textContent = ' … جارِ تحميل الأخبار العاجلة … ';
+          dup.textContent = track.textContent;
+          if(!card._newsLoaded){
+            try{
+              const titles = await fetchCountryHeadlines(country.code);
+              const text = titles.length ? titles.join(' • ') : '— لا توجد عناوين متاحة الآن —';
+              track.textContent = '  '+text+'   ';
+              dup.textContent = '  '+text+'   ';
+            }catch(e){
+              track.textContent = '— تعذّر تحميل الأخبار —';
+              dup.textContent = track.textContent;
+            }
+            card._newsLoaded = true;
+          }
+        }
+      });
         card.dataset.expanded = expanded ? '0' : '1';
         // عند الفتح لأول مرة — اجلب الأخبار
         if(!expanded && !card._newsLoaded){
