@@ -1,46 +1,77 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>بطاقات الدول — أونلاين دائم + ثنائي اللغة</title>
+  <title>تطبيق المسافر 🌍 — بطاقات الدول</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root { color-scheme: dark; }
     body{ background:#0b1220; }
+
+    /* شاشة ترحيب */
+    #welcome {
+      position:fixed; inset:0; display:flex; flex-direction:column; gap:18px;
+      align-items:center; justify-content:center; background:#0b1220; color:white;
+      z-index:50; text-align:center;
+      animation: fadeOut 1s ease forwards; animation-delay:2.2s;
+    }
+    #welcome .logo {
+      width:84px; height:84px; border-radius:24px; display:grid; place-items:center;
+      background:linear-gradient(135deg,#5b7cff, #00d4ff);
+      box-shadow:0 20px 60px rgba(0,0,0,.35), inset 0 0 18px rgba(255,255,255,.18);
+      font-size:40px;
+    }
+    @keyframes fadeOut { to { opacity:0; visibility:hidden; } }
 
     /* بطاقة مطوية/مفتوحة */
     .card-base{ position:relative; border-radius:28px; overflow:hidden;
       transition: transform .22s ease, box-shadow .22s ease, height .28s ease;
       border:1px solid rgb(30 41 59); }
     .card-base:hover{ transform:scale(1.03); box-shadow:0 16px 44px rgba(0,0,0,.48); z-index:10; }
-    .card-base[data-expanded="0"]{ height:120px; }
-    .card-base[data-expanded="1"]{ height:270px; }
+    .card-base[data-expanded="0"]{ height:126px; }
+    .card-base[data-expanded="1"]{ height:286px; }
 
     /* التفاصيل تختفي عند الطي—الساعة مستثناة */
     .detail{ transition: opacity .25s ease, transform .25s ease; }
     .card-base[data-expanded="0"] .detail{ opacity:0; transform:translateY(10px); pointer-events:none; }
-
-    /* الساعة تظهر دائمًا */
     .always-clock{ opacity:1 !important; transform:none !important; pointer-events:auto !important; }
 
-    .corner{ position:absolute; width:120px; height:120px; background:rgba(0,0,0,.22); border-radius:50%; }
+    /* زوايا ديكورية خفيفة */
+    .corner{ position:absolute; width:120px; height:120px; background:rgba(0,0,0,.18); border-radius:50%; }
     .corner.tl{ top:-60px; right:-60px; }
     .corner.br{ bottom:-60px; left:-60px; }
 
-    /* شريط خبر عاجل — مسار واحد */
+    /* شريط خبر عاجل — أبطأ للقراءة */
     @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
     .news-bar{ position:absolute; left:0; right:0; bottom:0; background:rgba(0,0,0,.28);
       backdrop-filter:blur(4px); border-top:1px dashed rgba(255,255,255,.2); }
     .marquee-wrap{ overflow:hidden; white-space:nowrap; }
-    .marquee-track{ display:inline-block; padding-left:100%; animation: ticker 18s linear infinite; }
+    .marquee-track{ display:inline-block; padding-left:100%; animation: ticker 45s linear infinite; }
     .news-bar:hover .marquee-track{ animation-play-state: paused; }
 
-    /* تحسين تباين النص */
+    /* تحسين تباين النص فوق الخلفيات */
     .text-shadow { text-shadow: 0 2px 8px rgba(0,0,0,.35); }
+
+    /* شارة ترحيب صغيرة داخل كل كرت */
+    .hello-badge{
+      position:absolute; top:16px; left:18px;
+      display:flex; align-items:center; gap:6px;
+      padding:6px 10px; border-radius:999px;
+      background:rgba(0,0,0,.28); backdrop-filter: blur(6px);
+      font-size:12px; color:#fff; border:1px solid rgba(255,255,255,.18);
+    }
   </style>
 </head>
 <body class="min-h-screen text-slate-100">
+  <!-- صفحة ترحيب -->
+  <div id="welcome" aria-hidden="true">
+    <div class="logo">🌍</div>
+    <div class="text-3xl font-extrabold">أهلاً بكم في تطبيق المسافر</div>
+    <div class="opacity-80">بطاقات حيّة للوقت والطقس والأخبار لكل بلد</div>
+  </div>
+
   <header class="sticky top-0 z-30 backdrop-blur bg-slate-900/80 border-b border-slate-800">
     <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <div class="flex items-center gap-3">
@@ -62,19 +93,33 @@
   </main>
 
   <script>
-    // ===== حالة عامة
+    // ===== الحالة العامة
     const STATE = { lang: 'ar', online: true };
 
-    // عناصر
+    // عناصر DOM
     const gridEl = document.getElementById('grid');
     const searchEl = document.getElementById('search');
     const langEl = document.getElementById('lang');
     const titleEl = document.getElementById('title');
 
-    // نصوص
+    // ترجمات
     const T = {
-      ar: { title:'بطاقات الدول — أونلاين دائم + ثنائي اللغة', search:'ابحث: دولة / عملة…', breaking:'خبر عاجل:', sunset:'غروب الشمس', offline:'— لا توجد عناوين متاحة —' },
-      en: { title:'Country Cards — Always Online + Bilingual', search:'Search: country / currency…', breaking:'Breaking:', sunset:'Sunset', offline:'— No headlines available —' }
+      ar: {
+        title:'بطاقات الدول — أونلاين دائم + ثنائي اللغة',
+        search:'ابحث: دولة / عملة…',
+        breaking:'خبر عاجل:',
+        sunset:'غروب الشمس',
+        offline:'— لا توجد عناوين متاحة —',
+        hello:'أهلاً'
+      },
+      en: {
+        title:'Country Cards — Always Online + Bilingual',
+        search:'Search: country / currency…',
+        breaking:'Breaking:',
+        sunset:'Sunset',
+        offline:'— No headlines available —',
+        hello:'Welcome'
+      }
     };
 
     function applyLang(){
@@ -89,25 +134,43 @@
         if(c){ el.textContent = STATE.lang==='ar' ? (c.name_ar||c.name_en) : (c.name_en||c.name_ar); }
       });
       document.querySelectorAll('[data-breaking]').forEach(el=> el.textContent = T[STATE.lang].breaking);
+      document.querySelectorAll('[data-hello]').forEach(el=> el.textContent = T[STATE.lang].hello);
     }
     langEl.addEventListener('change', ()=>{ STATE.lang = langEl.value; applyLang(); });
 
-    // ===== ألوان خلفية أهدأ
+    // ===== ألوان خلفية أهدأ ومتناغمة
     function hashHue(str){ let h=0; for(let i=0;i<(str||'').length;i++){ h=(h*31 + str.charCodeAt(i))>>>0; } return h%360; }
-    function themeFromCode(code){ const h=hashHue(code||'XX'); return { from:`hsl(${h} 55% 32%)`, to:`hsl(${(h+18)%360} 60% 42%)` }; }
-    function gradient(theme, night=false){ const from = night? '#0f172a' : theme.from; const to = night? '#0b1220' : theme.to; return `linear-gradient(135deg, ${from} 0%, ${to} 70%)`; }
+    function themeFromCode(code){
+      const h=hashHue(code||'XX');
+      return { from:`hsl(${h} 55% 32%)`, to:`hsl(${(h+18)%360} 60% 42%)` };
+    }
+    function gradient(theme, night=false){
+      const from = night? '#0f172a' : theme.from;
+      const to   = night? '#0b1220' : theme.to;
+      return `linear-gradient(135deg, ${from} 0%, ${to} 70%)`;
+    }
 
-    // رموز تراثية
-    const HERITAGE = { AE:'🏙️', SA:'🕋', EG:'🗿', MA:'🕌', TN:'🏺', DZ:'⛰️', QA:'🏟️', KW:'🛢️', BH:'⚓', OM:'🏜️', JO:'🏛️', LB:'🌲', IQ:'🏺', SY:'🏛️', YE:'🕌', TR:'🕌', IR:'🏛️', IL:'🕍', PS:'🕌', IN:'🛕', CN:'🏮', JP:'🗻', KR:'🔗', DE:'🏛️', FR:'🗼', ES:'⛪', PT:'⛵', IT:'🏛️', NL:'🌷', BE:'🧇', CH:'⛰️', GB:'🕰️', US:'🗽', CA:'🍁', MX:'🪅', BR:'⚽', AR:'🧉', AU:'🦘', NZ:'🌀' };
-    const REGION_FALLBACK = { Africa:'🌍', Asia:'🏯', Europe:'🏰', Americas:'🗽', Oceania:'🏝️', Antarctic:'❄️', 'أفريقيا':'🌍','آسيا':'🏯','أوروبا':'🏰','أمريكا':'🗽','أوقيانوسيا':'🏝️' };
+    // ===== رموز تراثية/دالة على البلد
+    const HERITAGE = {
+      AE:'🏙️', SA:'🕋', EG:'🗿', MA:'🕌', TN:'🏺', DZ:'⛰️', QA:'🏟️', KW:'🛢️', BH:'⚓', OM:'🏜️',
+      JO:'🏛️', LB:'🌲', IQ:'🏺', SY:'🏛️', YE:'🕌', TR:'🕌', IR:'🏛️', IL:'🕍', PS:'🕌',
+      IN:'🛕', CN:'🏮', JP:'🗻', KR:'🔗',
+      DE:'🏛️', FR:'🗼', ES:'⛪', PT:'⛵', IT:'🏛️', NL:'🌷', BE:'🧇', CH:'⛰️', GB:'🕰️',
+      US:'🗽', CA:'🍁', MX:'🪅', BR:'⚽', AR:'🧉',
+      AU:'🦘', NZ:'🌀', MA:'🕌', SE:'❄️', NO:'🛶'
+    };
+    const REGION_FALLBACK = {
+      Africa:'🌍', Asia:'🏯', Europe:'🏰', Americas:'🗽', Oceania:'🏝️', Antarctic:'❄️',
+      'أفريقيا':'🌍','آسيا':'🏯','أوروبا':'🏰','أمريكا':'🗽','أوقيانوسيا':'🏝️'
+    };
     function pickSymbol(code, region){ return HERITAGE[code] || REGION_FALLBACK[region] || '🌐'; }
 
-    // كاش
+    // ===== كاش
     const TTL = { countries: 365*24*60*60*1000, weather: 30*60*1000, fx: 12*60*60*1000, news: 30*60*1000 };
     function setCache(key, value){ try{ localStorage.setItem(key, JSON.stringify({ t: Date.now(), v: value })); }catch{} }
     function getCache(key, ttl){ try{ const s = localStorage.getItem(key); if(!s) return null; const {t,v} = JSON.parse(s); if(ttl && Date.now()-t>ttl) return null; return v; }catch{ return null } }
 
-    // بيانات أوفلاين
+    // ===== بيانات أوفلاين مبدئية
     const OFFLINE = [
       ['AE','الإمارات','United Arab Emirates','Asia/Dubai',25.2048,55.2708,'AED','ae','Asia'],
       ['SA','السعودية','Saudi Arabia','Asia/Riyadh',24.7136,46.6753,'SAR','sa','Asia'],
@@ -123,7 +186,7 @@
 
     let COUNTRIES = [];
 
-    // أيقونات الطقس
+    // ===== أيقونات الطقس
     function iconSVGByWeather(code, is_day){
       const sun = `<circle cx='50' cy='50' r='24' fill='#facc15'/>`;
       const moon = `<path d='M64 50a22 22 0 1 1-28-28a24 24 0 1 0 28 28z' fill='#e5e7eb'/>`;
@@ -143,7 +206,7 @@
       return `<svg viewBox='0 0 100 100'>${cloud}</svg>`;
     }
 
-    // تحويل UTC±HH:MM لعرض الساعة
+    // ===== الوقت حسب المنطقة
     function parseUtcOffset(tz){ const m=/^UTC([+-])(\d{2}):(\d{2})$/.exec(tz||''); if(!m) return null; const sign=m[1]==='-'?-1:1; return sign*(+m[2]*60+ +m[3]); }
     function formatTimeForTZ(now, tz){
       const off=parseUtcOffset(tz);
@@ -163,7 +226,7 @@
       return { time:`${hh}:${mm}`, date: STATE.lang==='ar'? `${wd_ar[d.getDay()]}، ${d.getDate()} ${mo_ar[d.getMonth()]}` : `${wd_en[d.getDay()]}, ${d.getDate()} ${mo_en[d.getMonth()]}` };
     }
 
-    // ===== بطاقة
+    // ===== إنشاء البطاقة
     function createCard(c){
       const card = document.createElement('article');
       card.className='card-base';
@@ -176,21 +239,25 @@
       const c2=document.createElement('div'); c2.className='corner br';
       const pad=document.createElement('div'); pad.className='absolute inset-0 p-5';
 
-      // أيقونة الطقس يسار أعلى (تختفي عند الطي)
+      // شارة ترحيب داخل الكرت
+      const hello=document.createElement('div');
+      hello.className='hello-badge';
+      hello.innerHTML = `<span>👋</span><span data-hello>${T[STATE.lang].hello}</span>`;
+
+      // أيقونة الطقس (تختفي عند الطي)
       const iconEl=document.createElement('div');
       iconEl.className='absolute detail';
-      iconEl.style.left='18px'; iconEl.style.top='16px';
-      iconEl.style.width='64px'; iconEl.style.height='64px';
+      iconEl.style.left='20px'; iconEl.style.top='64px';
+      iconEl.style.width='60px'; iconEl.style.height='60px';
       iconEl.innerHTML=iconSVGByWeather(1,true);
 
       // درجة الحرارة — أسفل يسار (تختفي عند الطي)
       const tempEl = document.createElement('div');
       tempEl.className='absolute detail text-3xl md:text-4xl font-extrabold text-shadow';
-      tempEl.style.left='22px'; tempEl.style.bottom='56px';
-      tempEl.setAttribute('data-temp','');
-      tempEl.textContent = '—°';
+      tempEl.style.left='22px'; tempEl.style.bottom='58px';
+      tempEl.setAttribute('data-temp',''); tempEl.textContent = '—°';
 
-      // اسم الدولة + العلم يمين أعلى
+      // اسم + علم يمين أعلى
       const topRight=document.createElement('div');
       topRight.className='absolute flex items-center gap-2';
       topRight.style.right='20px'; topRight.style.top='16px';
@@ -214,15 +281,15 @@
       // يمين أسفل: الغروب + سعر الصرف (تختفي عند الطي)
       const bottomRight=document.createElement('div');
       bottomRight.className='absolute text-right detail';
-      bottomRight.style.right='20px'; bottomRight.style.bottom='56px';
+      bottomRight.style.right='20px'; bottomRight.style.bottom='58px';
       bottomRight.innerHTML=`<div class="text-white/90 text-sm text-shadow" data-sunset>—</div>
                              <div class="text-white/90 text-xs mt-2 text-shadow" data-fx>1 USD = — ${c.currency.code}</div>`;
 
-      // رمز تراثي تحت أيقونة الطقس (يظهر دائمًا بسيط)
+      // رمز تراثي (يعرف البلد) تحت الساعة قليلاً — دائم
       const heritage=document.createElement('div');
       heritage.className='absolute select-none';
-      heritage.style.left='18px'; heritage.style.top='86px';
-      heritage.style.fontSize='24px'; heritage.style.opacity='0.9';
+      heritage.style.left='20px'; heritage.style.top='16px';
+      heritage.style.fontSize='26px'; heritage.style.opacity='0.95';
       heritage.textContent=pickSymbol(c.code,c.region);
 
       // شريط الأخبار (يختفي عند الطي)
@@ -235,7 +302,8 @@
           <div class='marquee-track'><span data-news>…</span></div>
         </div>`;
 
-      // تجميع
+      // تجميع العناصر
+      pad.appendChild(hello);
       pad.appendChild(iconEl);
       pad.appendChild(tempEl);
       pad.appendChild(topRight);
@@ -245,27 +313,26 @@
       pad.appendChild(newsBar);
       card.appendChild(pad); card.appendChild(c1); card.appendChild(c2);
 
-      // اسم حسب اللغة
+      // الاسم حسب اللغة
       function setName(){
         card.querySelector('[data-name]').textContent = STATE.lang==='ar' ? (c.name_ar||c.name_en) : (c.name_en||c.name_ar);
         card.querySelector('[data-breaking]').textContent = T[STATE.lang].breaking;
+        card.querySelector('[data-hello]').textContent = T[STATE.lang].hello;
       }
       setName();
 
-      // ساعة وتاريخ
+      // الساعة
       function tick(){
         const now=new Date();
         try{
           const {time,date}=formatTimeForTZ(now,c.tz);
           card.querySelector('[data-time]').textContent=time;
           card.querySelector('[data-date]').textContent=date;
-        }catch{
-          card.querySelector('[data-time]').textContent='—';
-        }
+        }catch{ card.querySelector('[data-time]').textContent='—'; }
       }
       tick(); setInterval(tick,1000);
 
-      // فتح/طي + جلب أونلاين عند الفتح
+      // فتح/طي + تحميل بيانات عند الفتح
       card.addEventListener('click', async ()=>{
         const expanded = card.dataset.expanded==='1';
         card.style.transform='scale(1.03)'; setTimeout(()=> card.style.transform='',160);
@@ -281,7 +348,7 @@
       COUNTRIES.forEach(c=> gridEl.appendChild(createCard(c)));
     }
 
-    // أخبار عاجلة
+    // ===== الأخبار
     async function fetchCountryHeadlines(code){
       const cacheKey=`cache:news:${STATE.lang}:${code}`;
       const cached=getCache(cacheKey,TTL.news); if(cached) return cached;
@@ -303,7 +370,7 @@
       return [];
     }
 
-    // طقس/غروب + أسعار صرف + أخبار
+    // ===== الطقس/الغروب + أسعار الصرف + الأخبار
     async function hydrateOnline(c, card){
       // طقس
       try{
@@ -344,7 +411,7 @@
         }
       }catch{}
 
-      // أخبار — مسار واحد
+      // أخبار — مسار واحد بطيء
       try{
         const titles=await fetchCountryHeadlines(c.code);
         const text = titles.length? ('  '+titles.join(' • ')+'  ') : ('  '+T[STATE.lang].offline+'  ');
@@ -353,7 +420,7 @@
       }catch{}
     }
 
-    // جلب الدول
+    // ===== كل الدول من RESTCountries
     async function fetchAllCountriesOnline(){
       const key='cache:countries_full'; const cached=getCache(key,TTL.countries);
       if(cached && cached.length>100) return cached;
@@ -389,7 +456,7 @@
       return list;
     }
 
-    // بحث
+    // ===== بحث فوري
     searchEl.addEventListener('input',()=>{
       const q = searchEl.value.trim().toLowerCase();
       gridEl.querySelectorAll('article').forEach(el=>{
@@ -398,7 +465,7 @@
       });
     });
 
-    // إقلاع
+    // ===== إقلاع
     (async function init(){
       const cached = getCache('cache:countries_full', TTL.countries);
       COUNTRIES = cached && cached.length ? cached : OFFLINE;
