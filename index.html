@@ -2,14 +2,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>بطاقات الدول — ستايل ويدجت الطقس والساعة</title>
+  <title>بطاقات الدول — ستايل ويدجت تفاعلي</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     html, body { height: 100%; }
     body { background: #0b1220; }
-    .glass { backdrop-filter: blur(8px); }
-    .soft-shadow { box-shadow: 0 10px 30px rgba(0,0,0,.35); }
-    .card-base { position: relative; border-radius: 28px; overflow: hidden; }
+    .card-base { position: relative; border-radius: 28px; overflow: hidden; transition: transform .25s ease, box-shadow .25s ease; }
+    .card-base:hover { transform: scale(1.04); box-shadow: 0 15px 40px rgba(0,0,0,.45); z-index:10; }
     .corner { position:absolute; width:120px; height:120px; background:rgba(0,0,0,.25); border-radius:50%; }
     .corner.tl{ top:-60px; right:-60px; }
     .corner.br{ bottom:-60px; left:-60px; }
@@ -20,7 +19,7 @@
     <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <div class="flex items-center gap-3">
         <span class="text-2xl">🌍</span>
-        <h1 class="text-xl md:text-2xl font-bold">بطاقات الدول — (شكل كرت مثل الصورة) الوقت • الطقس • العملة</h1>
+        <h1 class="text-xl md:text-2xl font-bold">بطاقات الدول — الوقت • الطقس • العملة</h1>
       </div>
       <div class="flex flex-col md:flex-row gap-2 md:items-center w-full md:w-auto">
         <input id="search" type="text" placeholder="ابحث عن دولة…" class="w-full md:w-80 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
@@ -30,49 +29,52 @@
   </header>  <main class="max-w-7xl mx-auto p-4">
     <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
   </main>  <script>
-    // ================= إعداد الدول =================
+    // ================= إعداد الدول مع لون مميز =================
     const COUNTRIES = [
-      { code:'DE', name:'ألمانيا', tz:'Europe/Berlin', lat:52.52, lon:13.405, currency:{code:'EUR', symbol:'€', name:'اليورو'}, accent:'#2563eb', flag:'de' },
-      { code:'TR', name:'تركيا', tz:'Europe/Istanbul', lat:41.015137, lon:28.97953, currency:{code:'TRY', symbol:'₺', name:'الليرة التركية'}, accent:'#0ea5e9', flag:'tr' },
-      { code:'SA', name:'السعودية', tz:'Asia/Riyadh', lat:24.7136, lon:46.6753, currency:{code:'SAR', symbol:'﷼', name:'الريال السعودي'}, accent:'#0891b2', flag:'sa' },
-      { code:'AE', name:'الإمارات', tz:'Asia/Dubai', lat:25.2048, lon:55.2708, currency:{code:'AED', symbol:'د.إ', name:'الدرهم الإماراتي'}, accent:'#0ea5e9', flag:'ae' },
-      { code:'EG', name:'مصر', tz:'Africa/Cairo', lat:30.0444, lon:31.2357, currency:{code:'EGP', symbol:'£', name:'الجنيه المصري'}, accent:'#2563eb', flag:'eg' },
-      { code:'GB', name:'بريطانيا', tz:'Europe/London', lat:51.5072, lon:-0.1276, currency:{code:'GBP', symbol:'£', name:'الجنيه الإسترليني'}, accent:'#1d4ed8', flag:'gb' },
-      { code:'JP', name:'اليابان', tz:'Asia/Tokyo', lat:35.6762, lon:139.6503, currency:{code:'JPY', symbol:'¥', name:'الين الياباني'}, accent:'#1e40af', flag:'jp' },
-      { code:'US', name:'أمريكا', tz:'America/New_York', lat:40.7128, lon:-74.0060, currency:{code:'USD', symbol:'$', name:'الدولار الأمريكي'}, accent:'#2563eb', flag:'us' },
+      { code:'DE', name:'ألمانيا', tz:'Europe/Berlin', lat:52.52, lon:13.405, currency:{code:'EUR', symbol:'€', name:'اليورو'}, color:'#2563eb', flag:'de' },
+      { code:'TR', name:'تركيا', tz:'Europe/Istanbul', lat:41.015137, lon:28.97953, currency:{code:'TRY', symbol:'₺', name:'الليرة التركية'}, color:'#e11d48', flag:'tr' },
+      { code:'SA', name:'السعودية', tz:'Asia/Riyadh', lat:24.7136, lon:46.6753, currency:{code:'SAR', symbol:'﷼', name:'الريال السعودي'}, color:'#16a34a', flag:'sa' },
+      { code:'AE', name:'الإمارات', tz:'Asia/Dubai', lat:25.2048, lon:55.2708, currency:{code:'AED', symbol:'د.إ', name:'الدرهم الإماراتي'}, color:'#0ea5e9', flag:'ae' },
+      { code:'EG', name:'مصر', tz:'Africa/Cairo', lat:30.0444, lon:31.2357, currency:{code:'EGP', symbol:'£', name:'الجنيه المصري'}, color:'#f59e0b', flag:'eg' },
+      { code:'GB', name:'بريطانيا', tz:'Europe/London', lat:51.5072, lon:-0.1276, currency:{code:'GBP', symbol:'£', name:'الجنيه الإسترليني'}, color:'#9333ea', flag:'gb' },
+      { code:'JP', name:'اليابان', tz:'Asia/Tokyo', lat:35.6762, lon:139.6503, currency:{code:'JPY', symbol:'¥', name:'الين الياباني'}, color:'#ef4444', flag:'jp' },
+      { code:'US', name:'أمريكا', tz:'America/New_York', lat:40.7128, lon:-74.0060, currency:{code:'USD', symbol:'$', name:'الدولار الأمريكي'}, color:'#3b82f6', flag:'us' },
     ];
 
     const gridEl = document.getElementById('grid');
     const searchEl = document.getElementById('search');
     const refreshBtn = document.getElementById('refreshBtn');
 
-    function gradient(accent){
-      return `linear-gradient(180deg, ${accent} 0%, rgba(14,165,233,0.9) 60%, rgba(2,6,23,0.85) 120%)`;
+    function gradient(color){
+      return `linear-gradient(180deg, ${color} 0%, rgba(2,6,23,0.85) 100%)`;
+    }
+
+    function weatherIcon(temp){
+      if(temp === null) return '❓';
+      if(temp < 5) return '❄️';
+      if(temp < 18) return '☁️';
+      if(temp < 28) return '🌤️';
+      return '🔥';
     }
 
     function createCard(country){
       const card = document.createElement('article');
-      card.className = 'card-base soft-shadow border border-slate-800';
-      card.style.background = gradient(country.accent);
+      card.className = 'card-base border border-slate-800';
+      card.style.background = gradient(country.color);
       card.style.minHeight = '240px';
       card.dataset.countryName = country.name;
 
-      // decorative corners (مثل الصورة)
-      const c1 = document.createElement('div'); c1.className='corner tl';
-      const c2 = document.createElement('div'); c2.className='corner br';
-
-      // ===== المحتوى المتموضع =====
       const pad = document.createElement('div');
       pad.className = 'absolute inset-0 p-5';
 
-      // أعلى اليسار — أيقونة طقس بسيطة
-      const sun = document.createElementNS('http://www.w3.org/2000/svg','svg');
-      sun.setAttribute('viewBox','0 0 100 100');
-      sun.classList.add('absolute');
-      sun.style.left='20px'; sun.style.top='22px'; sun.style.width='64px'; sun.style.height='64px';
-      sun.innerHTML = `<circle cx="50" cy="50" r="22" fill="#facc15"/>`;
+      // أيقونة الطقس حسب الحرارة
+      const iconEl = document.createElement('div');
+      iconEl.className = 'absolute text-6xl';
+      iconEl.style.left='20px';
+      iconEl.style.top='22px';
+      iconEl.textContent = '—';
 
-      // أعلى اليمين — الحرارة واسم الدولة + العلم
+      // أعلى اليمين — الحرارة + الدولة
       const topRight = document.createElement('div');
       topRight.className = 'absolute flex items-center gap-2';
       topRight.style.right = '20px';
@@ -87,7 +89,6 @@
           <div class="text-white/70 text-xs mt-0.5">${country.tz}</div>
         </div>`;
 
-      // أسفل اليسار — الساعة والتاريخ كبير
       const bottomLeft = document.createElement('div');
       bottomLeft.className = 'absolute';
       bottomLeft.style.left='20px';
@@ -96,7 +97,6 @@
         <div class="text-white/90 text-sm" data-date>—</div>
         <div class="text-5xl sm:text-6xl font-black tracking-tight" data-time>--:--</div>`;
 
-      // أسفل اليمين — الغروب + سعر الصرف
       const bottomRight = document.createElement('div');
       bottomRight.className = 'absolute text-right';
       bottomRight.style.right='20px';
@@ -105,24 +105,22 @@
         <div class="text-white/90 text-sm" data-sunset>غروب الشمس: —</div>
         <div class="text-white/90 text-xs mt-2" data-fx>1 USD = — ${country.currency.code}</div>`;
 
-      pad.appendChild(sun);
+      pad.appendChild(iconEl);
       pad.appendChild(topRight);
       pad.appendChild(bottomLeft);
       pad.appendChild(bottomRight);
 
       card.appendChild(pad);
-      card.appendChild(c1); card.appendChild(c2);
 
-      // مراجع
       card._refs = {
         time: bottomLeft.querySelector('[data-time]'),
         date: bottomLeft.querySelector('[data-date]'),
         temp: topRight.querySelector('[data-temp]'),
+        icon: iconEl,
         sunset: bottomRight.querySelector('[data-sunset]'),
         fx: bottomRight.querySelector('[data-fx]')
       };
 
-      // مؤقت الوقت والتاريخ
       function tick(){
         const now = new Date();
         try{
@@ -137,7 +135,6 @@
       return card;
     }
 
-    // ============= إدراج =============
     const cardMap = new Map();
     function renderAll(){
       gridEl.innerHTML = '';
@@ -148,14 +145,12 @@
       });
     }
 
-    // ============= طقس وغروب الشمس: Open‑Meteo =============
     async function fetchWeatherAndSun(country){
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${country.lat}&longitude=${country.lon}&current_weather=true&daily=sunset&timezone=${encodeURIComponent(country.tz)}`;
       const r = await fetch(url);
-      if(!r.ok) throw new Error('weather http '+r.status);
       const data = await r.json();
       const temp = data?.current_weather?.temperature ?? null;
-      const sunsetISO = data?.daily?.sunset?.[0] ?? null; // بصيغة التوقيت المحلي
+      const sunsetISO = data?.daily?.sunset?.[0] ?? null;
       return { temp, sunsetISO };
     }
 
@@ -165,28 +160,20 @@
         try{
           const {temp, sunsetISO} = await fetchWeatherAndSun(c);
           el._refs.temp.textContent = (temp!==null? Math.round(temp): '—') + '°';
+          el._refs.icon.textContent = weatherIcon(temp);
           if(sunsetISO){
             const t = new Date(sunsetISO);
-            const hh = t.getHours().toString().padStart(2,'0');
-            const mm = t.getMinutes().toString().padStart(2,'0');
-            el._refs.sunset.textContent = `غروب الشمس: ${hh}:${mm}`;
-          }else{
-            el._refs.sunset.textContent = 'غروب الشمس: —';
+            el._refs.sunset.textContent = `غروب الشمس: ${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}`;
           }
-        }catch(e){
-          el._refs.temp.textContent = '—°';
-          el._refs.sunset.textContent = 'غروب الشمس: —';
-        }
+        }catch(e){ el._refs.temp.textContent='—°'; el._refs.sunset.textContent='غروب الشمس: —'; el._refs.icon.textContent='❓'; }
       }));
     }
 
-    // ============= أسعار الصرف: exchangerate.host =============
     function collectSymbols(){ const s=new Set(); COUNTRIES.forEach(c=>s.add(c.currency.code)); s.delete('USD'); return [...s]; }
     async function fetchRates(){
       const symbols = collectSymbols();
       if(symbols.length===0) return {};
       const r = await fetch(`https://api.exchangerate.host/latest?base=USD&symbols=${symbols.join(',')}`);
-      if(!r.ok) throw new Error('fx http '+r.status);
       const data = await r.json(); return data?.rates||{};
     }
     async function updateAllFX(){
@@ -195,13 +182,10 @@
         const el = cardMap.get(c.code);
         if(c.currency.code==='USD'){ el._refs.fx.textContent = '1 USD = 1.0000 USD'; return; }
         const perUSD = rates[c.currency.code];
-        if(typeof perUSD==='number' && perUSD>0){
-          el._refs.fx.textContent = `1 USD = ${perUSD.toLocaleString('ar-EG',{maximumFractionDigits:4})} ${c.currency.code}`;
-        }else{ el._refs.fx.textContent = `1 USD = — ${c.currency.code}`; }
+        if(typeof perUSD==='number' && perUSD>0){ el._refs.fx.textContent = `1 USD = ${perUSD.toLocaleString('ar-EG',{maximumFractionDigits:4})} ${c.currency.code}`; }
       });
     }
 
-    // ============= بحث =============
     searchEl.addEventListener('input',()=>{
       const q = searchEl.value.trim();
       gridEl.querySelectorAll('article').forEach(el=>{
@@ -218,7 +202,5 @@
     refreshBtn.addEventListener('click', refreshAll);
 
     (async function init(){ renderAll(); await refreshAll(); })();
-  </script></body>
-</html>    })();
   </script></body>
 </html>
