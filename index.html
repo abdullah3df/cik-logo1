@@ -1,268 +1,485 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>مولّد برومبتات فيديو — Storyboard Builder</title>
-  <meta name="description" content="تطبيق بسيط لتوليد برومبتات ومشاهد فيديو (Sora/AI) في ملف واحد.">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={darkMode:'class'}</script>
-  <style>
-    html{scroll-behavior:smooth}
-    .fade{animation:fade .2s ease both}
-    @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+<title>هروب الفرخة 🐔</title>
+<style>
+  :root { --bg:#0e1013; --panel:#151922; --text:#e8eef7; --accent:#ffd166; --danger:#ff4d4f; --ok:#30d158;}
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:linear-gradient(#1a1f2a,#0e1013) fixed;font-family:system-ui,Segoe UI,Roboto,Arial}
+  .wrap{display:flex;align-items:center;justify-content:center;min-height:100%;}
+  canvas{background:linear-gradient(#8fd3ff,#dff4ff 60%,#a1e6a1); border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.35); max-width:100%; height:auto;}
+  .hud{
+    position:fixed; inset:auto 0 16px 0; display:flex; justify-content:center; pointer-events:none;
+  }
+  .bar{
+    display:flex; gap:12px; align-items:center; padding:8px 12px; border-radius:999px;
+    background:rgba(0,0,0,.3); color:#fff; backdrop-filter:blur(6px); font-weight:600;
+  }
+  .lead{
+    width:180px; height:10px; background:#222a; border-radius:999px; overflow:hidden; outline:1px solid #fff2;
+  }
+  .lead > i{ display:block; height:100%; width:50%; background:linear-gradient(90deg, var(--ok), var(--accent));}
+  .pill{padding:6px 10px; background:#0008; border-radius:999px; font-weight:700}
+  .overlay{
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(180deg,rgba(14,16,19,.85),rgba(14,16,19,.65));
+    color:var(--text); text-align:center; padding:24px;
+  }
+  .card{
+    width:min(92vw,680px); background:var(--panel); border:1px solid #ffffff18; border-radius:20px; padding:24px; box-shadow:0 10px 40px #0008;
+  }
+  h1{margin:.2em 0 .3em;font-size:2rem}
+  h2{margin:.6em 0 .3em}
+  .kbd{display:inline-block; padding:.25em .55em; border:1px solid #fff3; border-bottom-width:3px; border-radius:8px; background:#0006; font-weight:700}
+  .btn{
+    margin-top:14px; display:inline-block; padding:10px 16px; background:var(--accent); color:#272a2f; font-weight:800;
+    border:none; border-radius:999px; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,.35);
+  }
+  .btn:hover{filter:brightness(1.05)}
+  .note{opacity:.8; font-size:.95rem}
+</style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen">
-  <!-- Header -->
-  <header class="sticky top-0 z-40 border-b border-gray-200/70 dark:border-gray-800/70 bg-white/70 dark:bg-gray-900/70 backdrop-blur">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-rose-500 to-fuchsia-600"></div>
-        <h1 class="text-lg font-semibold">مولّد برومبتات فيديو</h1>
+<body>
+  <div class="wrap">
+    <canvas id="game" width="960" height="540" aria-label="لعبة هروب الفرخة"></canvas>
+  </div>
+
+  <div class="hud" aria-hidden="true">
+    <div class="bar">
+      <span>المسافة: <span id="score">0</span>م</span>
+      <span class="pill" id="levelName">القرية</span>
+      <div class="lead" title="المسافة بين الفرخة والقط">
+        <i id="leadFill" style="width:50%"></i>
       </div>
-      <div class="flex items-center gap-2">
-        <button id="themeBtn" class="px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800">☾/☀︎</button>
-      </div>
+      <span>🟡 <span id="corn">0</span></span>
     </div>
-  </header>
+  </div>
 
-  <!-- Main -->
-  <main class="max-w-5xl mx-auto px-4 py-6 space-y-6">
-    <!-- Global Settings -->
-    <section class="fade rounded-2xl border border-gray-200 dark:border-gray-800 p-4 bg-white/80 dark:bg-gray-900/60 space-y-4">
-      <h2 class="text-xl font-bold">الإعدادات العامة</h2>
-      <div class="grid md:grid-cols-3 gap-3">
-        <div>
-          <label class="block text-sm mb-1">أسماء/عنوان (اختياري)</label>
-          <input id="names" class="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800 border border-transparent focus:outline-none focus:ring-2 focus:ring-fuchsia-500" placeholder="مثال: عبدالله & براءة • Engagement">
-        </div>
-        <div>
-          <label class="block text-sm mb-1">أبعاد الفيديو</label>
-          <select id="aspect" class="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800">
-            <option value="1080x1920">عمودي 1080×1920 (TikTok)</option>
-            <option value="1920x1080">أفقي 1920×1080</option>
-            <option value="1440x1920">عمودي 1440×1920 (تفاصيل أعلى)</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm mb-1">الستايل العام</label>
-          <select id="style" class="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800">
-            <option value="luxury minimal, soft whites, delicate gold accents, shallow depth of field, cinematic lighting, clean background">فاخر ناعم (أبيض/ذهبي)</option>
-            <option value="romantic pastel, soft bokeh, airy light, creamy tones">رومانسي باستيل</option>
-            <option value="high-contrast cinematic, dramatic lighting, elegant shadows">سينمائي حاد</option>
-            <option value="studio product look, glossy surfaces, immaculate detail">ستايل ستوديو/منتج</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="flex flex-wrap gap-2">
-        <button id="addPresetRings" class="px-3 py-2 rounded-xl bg-fuchsia-600 text-white hover:opacity-90">إضافة قالب: خواتم راقصة</button>
-        <button id="addPresetHands" class="px-3 py-2 rounded-xl bg-rose-600 text-white hover:opacity-90">قالب: اقتراب الأيدي</button>
-        <button id="addPresetRoses" class="px-3 py-2 rounded-xl bg-violet-600 text-white hover:opacity-90">قالب: إطار ورد فاخر</button>
-        <button id="clearAll" class="px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">مسح الكل</button>
-      </div>
-    </section>
-
-    <!-- Scenes -->
-    <section class="fade rounded-2xl border border-gray-200 dark:border-gray-800 p-4 bg-white/80 dark:bg-gray-900/60">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="text-xl font-bold">المشاهد</h2>
-        <button id="addScene" class="px-3 py-2 rounded-xl bg-indigo-600 text-white hover:opacity-90">+ إضافة مشهد</button>
-      </div>
-      <div id="scenes" class="space-y-3"></div>
-    </section>
-
-    <!-- Output -->
-    <section class="fade rounded-2xl border border-gray-200 dark:border-gray-800 p-4 bg-white/80 dark:bg-gray-900/60 space-y-3">
-      <h2 class="text-xl font-bold">المخرجات</h2>
-      <div class="flex flex-wrap gap-2">
-        <button id="buildAll" class="px-3 py-2 rounded-xl bg-emerald-600 text-white hover:opacity-90">تجميع البرومبت النهائي</button>
-        <button id="copyAll" class="px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">نسخ</button>
-        <button id="downloadTxt" class="px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">تنزيل TXT</button>
-      </div>
-      <textarea id="finalOut" rows="8" class="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800" placeholder="سيظهر هنا البرومبت النهائي لكل المشاهد…"></textarea>
-      <p class="text-xs text-gray-500">انسخ السطور إلى Sora أو أي مولّد فيديو. يمكنك تعديل النص قبل النسخ.</p>
-    </section>
-
-    <p class="text-center text-sm text-gray-500">© <span id="year"></span> Storyboard Builder — ملف واحد فقط.</p>
-  </main>
-
-  <!-- Template for a scene card -->
-  <template id="sceneTpl">
-    <div class="scene rounded-xl border border-gray-200 dark:border-gray-800 p-4 bg-white/70 dark:bg-gray-900/50">
-      <div class="flex items-start gap-3">
-        <div class="flex-1 space-y-2">
-          <div class="flex items-center justify-between">
-            <div class="font-semibold">مشهد <span class="scene-index"></span></div>
-            <div class="flex items-center gap-2">
-              <button class="dup px-3 py-1.5 rounded-lg bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-sm">استنساخ</button>
-              <button class="del px-3 py-1.5 rounded-lg bg-rose-600 text-white hover:opacity-90 text-sm">حذف</button>
-            </div>
-          </div>
-          <div class="grid md:grid-cols-4 gap-3">
-            <div class="md:col-span-1">
-              <label class="block text-sm mb-1">المدة (ث)</label>
-              <input class="dur w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800" type="number" min="1" max="12" value="5">
-            </div>
-            <div class="md:col-span-3">
-              <label class="block text-sm mb-1">وصف بصري مُركّز</label>
-              <input class="desc w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800" placeholder="مثال: خاتم ذهبي مع ألماسة على سطح أبيض لامع…">
-            </div>
-            <div class="md:col-span-2">
-              <label class="block text-sm mb-1">حركة الكاميرا</label>
-              <input class="cam w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800" placeholder="slow dolly-in, gentle orbit, macro close-up">
-            </div>
-            <div class="md:col-span-2">
-              <label class="block text-sm mb-1">عناصر أساسية (قائمة مفصولة بفواصل)</label>
-              <input class="elems w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800" placeholder="rings, rose petals, soft glow, hand silhouettes">
-            </div>
-            <div class="md:col-span-4">
-              <label class="block text-sm mb-1">مخرجات المشهد</label>
-              <textarea class="out w-full h-28 px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800" placeholder="سيظهر البرومبت لهذا المشهد بعد الضغط على توليد…"></textarea>
-            </div>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            <button class="build px-3 py-2 rounded-xl bg-indigo-600 text-white hover:opacity-90">توليد برومبت المشهد</button>
-            <button class="copy px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800">نسخ</button>
-          </div>
-        </div>
-      </div>
+  <div id="overlay" class="overlay">
+    <div class="card">
+      <h1>هروب الفرخة 🐔</h1>
+      <p>ساعد الغرخ الدجاج يهرب من القط! اقفز فوق العوائق واجمع الذرة لزيادة المسافة عن القط.</p>
+      <h2>التحكم</h2>
+      <p><span class="kbd">مسافة</span> أو لمسة/نقرة = قفز<br>
+         <span class="kbd">P</span> إيقاف مؤقت • <span class="kbd">R</span> إعادة</p>
+      <button class="btn" id="startBtn">ابدأ اللعب</button>
+      <p class="note">تلميح: جمع الذرة يزيد المسافة بينك وبين القط. الاصطدامات تقللها. إذا وصلت المسافة للصفر… القط يمسكك! 😼</p>
     </div>
-  </template>
+  </div>
 
-  <script>
-    // Helpers
-    const $ = s => document.querySelector(s)
-    const $$ = s => Array.from(document.querySelectorAll(s))
-    const tpl = document.getElementById('sceneTpl')
-    const scenesEl = document.getElementById('scenes')
-    const state = { scenes: [] }
+<script>
+(() => {
+  // ===== إعدادات عامة =====
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
 
-    // Theme
-    function setTheme() {
-      const root = document.documentElement
-      const stored = localStorage.getItem('theme')
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      root.classList.toggle('dark', (stored ?? (prefersDark ? 'dark' : 'light')) === 'dark')
+  const W = canvas.width, H = canvas.height;
+  const groundY = H - 82;
+  const G = 1700;              // الجاذبية (px/s^2)
+  const JUMP_V = -720;         // سرعة القفز (px/s)
+  const BASE_SPEED = 240;      // سرعة العالم الأساسية (px/s)
+
+  // حالة اللعبة
+  let running = false, paused = false, gameOver = false;
+  let last = 0;
+
+  // العالم/المستويات
+  const levels = [
+    {name: "القرية", speedMul: 1.00, color:"#a1e6a1", sky:"#dff4ff"},
+    {name: "المزرعة", speedMul: 1.18, color:"#93db8f", sky:"#d7f0ff"},
+    {name: "المدينة", speedMul: 1.32, color:"#86d38a", sky:"#cfeaff"},
+    {name: "القلعة", speedMul: 1.48, color:"#78ca82", sky:"#c7e3ff"},
+  ];
+  const gates = [0, 800, 2200, 4200]; // أمتار تقريباً لرفع المرحلة
+
+  let world = {
+    speed: BASE_SPEED,
+    distance: 0, // بالمتر التقريبي (نحو px/240)
+    levelIdx: 0,
+    bgTick: 0
+  };
+
+  // اللاعب (الفرخة)
+  const player = {
+    x: 160, y: groundY - 60, w: 60, h: 60,
+    vy: 0, onGround: true, flapTimer: 0, // جناح سحري (تقليل الجاذبية مؤقتاً)
+    jump() {
+      if (this.onGround) {
+        this.vy = JUMP_V;
+        this.onGround = false;
+      }
     }
-    setTheme()
-    document.getElementById('themeBtn').onclick = () => {
-      const dark = document.documentElement.classList.contains('dark')
-      localStorage.setItem('theme', dark ? 'light' : 'dark')
-      setTheme()
+  };
+
+  // القط المطارد (يحسب بالمسافة الفعلية كـ "lead")
+  const cat = {
+    w: 70, h: 55, y: groundY - 55,
+    lead: 140, // بكسل بين القط ومركز اللاعب (كلما قل صار أخطر)
+    approachRate: 14 // px/sec (يزيد مع المراحل)
+  };
+
+  // عوائق وعناصر
+  const obstacles = [];
+  const coins = [];
+  const feathers = [];
+  let spawnObsT = 0, spawnCoinT = 0, spawnFeatT = 5;
+
+  // نقاط/عدادات
+  let cornCount = 0;
+
+  // عناصر HUD
+  const scoreEl = document.getElementById('score');
+  const levelNameEl = document.getElementById('levelName');
+  const leadFill = document.getElementById('leadFill');
+  const cornEl = document.getElementById('corn');
+  const overlay = document.getElementById('overlay');
+  const startBtn = document.getElementById('startBtn');
+
+  // ===== أدوات =====
+  function rand(a,b){return Math.random()*(b-a)+a}
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+  function aabb(ax,ay,aw,ah,bx,by,bw,bh){
+    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+  }
+
+  function resetGame() {
+    running = true; paused = false; gameOver = false; last = 0;
+    world = { speed: BASE_SPEED, distance:0, levelIdx:0, bgTick:0 };
+    player.x = 160; player.y = groundY-60; player.vy = 0; player.onGround = true; player.flapTimer = 0;
+    cat.lead = 140;
+    obstacles.length = 0; coins.length = 0; feathers.length = 0;
+    spawnObsT = 0; spawnCoinT = 0; spawnFeatT = 6;
+    cornCount = 0;
+    overlay.style.display = 'none';
+    leadFill.style.width = '50%';
+    levelNameEl.textContent = levels[0].name;
+    scoreEl.textContent = '0'; cornEl.textContent = '0';
+  }
+
+  function gameOverScreen(msg="انتهت اللعبة! 🐱‍👤") {
+    running = false; gameOver = true;
+    overlay.innerHTML = `
+      <div class="card">
+        <h1>${msg}</h1>
+        <p>المسافة المقطوعة: <b>${Math.floor(world.distance)}</b> متر • الذرة: <b>${cornCount}</b></p>
+        <button class="btn" id="restartBtn">إعادة اللعب</button>
+        <p class="note">نصيحة: حافظ على قفزاتك في توقيتٍ دقيق، والْتقط الريشة لتخفيف الجاذبية مؤقتًا.</p>
+      </div>`;
+    overlay.style.display = 'flex';
+    document.getElementById('restartBtn').onclick = () => resetGame();
+  }
+
+  // ===== رسم الشخصيات بشكل كرتوني بسيط =====
+  function drawChicken(x,y,w,h){
+    // جسم
+    ctx.fillStyle = "#fffaf0";
+    roundRect(x,y,w,h,14,true,false);
+
+    // جناح تزييني
+    ctx.fillStyle = "#ffe6a7";
+    roundRect(x+10,y+18,w*0.55,h*0.42,10,true,false);
+
+    // عين
+    ctx.fillStyle="#222";
+    ctx.beginPath(); ctx.arc(x+w-18,y+16,6,0,Math.PI*2); ctx.fill();
+
+    // منقار
+    ctx.fillStyle="#ff9f1c";
+    ctx.beginPath();
+    ctx.moveTo(x+w-8,y+h*0.45);
+    ctx.lineTo(x+w+12,y+h*0.5);
+    ctx.lineTo(x+w-8,y+h*0.55);
+    ctx.closePath(); ctx.fill();
+
+    // أرجل
+    ctx.strokeStyle="#ff9f1c"; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.moveTo(x+14,y+h); ctx.lineTo(x+14,y+h+10); ctx.moveTo(x+34,y+h); ctx.lineTo(x+34,y+h+10); ctx.stroke();
+
+    // تأثير "جناح سحري" عند التفعيل
+    if (player.flapTimer>0){
+      ctx.globalAlpha=0.55;
+      ctx.fillStyle="#b4f5ff";
+      ctx.beginPath();
+      ctx.ellipse(x+w*0.35,y+h*0.2,w*0.4,h*0.3,0,0,Math.PI*2);
+      ctx.fill();
+      ctx.globalAlpha=1;
+    }
+  }
+
+  function drawCat(x,y,w,h){
+    // جسم
+    ctx.fillStyle="#3a3a45";
+    roundRect(x,y,w,h,10,true,false);
+    // أذنان
+    ctx.fillStyle="#3a3a45";
+    ctx.beginPath(); ctx.moveTo(x+10,y); ctx.lineTo(x+24,y-16); ctx.lineTo(x+30,y); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x+w-10,y); ctx.lineTo(x+w-24,y-16); ctx.lineTo(x+w-30,y); ctx.closePath(); ctx.fill();
+    // عينان
+    ctx.fillStyle="#ffd166";
+    ctx.beginPath(); ctx.arc(x+20,y+16,5,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+w-20,y+16,5,0,Math.PI*2); ctx.fill();
+    // فم
+    ctx.strokeStyle="#fff"; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(x+w/2-8,y+h-16); ctx.quadraticCurveTo(x+w/2,y+h-10,x+w/2+8,y+h-16); ctx.stroke();
+  }
+
+  function roundRect(x,y,w,h,r,fill,stroke){
+    if (w<2*r) r=w/2; if (h<2*r) r=h/2;
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,  x+w,y+h, r);
+    ctx.arcTo(x+w,y+h,x,  y+h,  r);
+    ctx.arcTo(x,  y+h,x,  y,    r);
+    ctx.arcTo(x,  y,  x+w,y,    r);
+    ctx.closePath();
+    if(fill) ctx.fill();
+    if(stroke) ctx.stroke();
+  }
+
+  // ===== تحديث المستوى حسب المسافة =====
+  function updateLevel(){
+    const d = world.distance;
+    let idx = 0;
+    if (d >= gates[3]) idx = 3;
+    else if (d >= gates[2]) idx = 2;
+    else if (d >= gates[1]) idx = 1;
+    if (idx !== world.levelIdx){
+      world.levelIdx = idx;
+      levelNameEl.textContent = levels[idx].name;
+    }
+    // سرعة العالم ووتيرة اقتراب القط تزداد تدريجياً
+    const lv = levels[world.levelIdx];
+    world.speed = BASE_SPEED * lv.speedMul;
+    cat.approachRate = 14 * lv.speedMul;
+  }
+
+  // ===== توليد عناصر =====
+  function spawnObstacle(){
+    // ثلاثة أنماط: صندوق، شوكة، بركة
+    const type = Math.random();
+    let w=40,h=40,y=groundY-40, color="#6b4f3a";
+    if (type < 0.33){ // صندوق
+      w = 48; h = 46; y=groundY-h; color="#7b523c";
+    } else if (type < 0.66){ // شوكة
+      w = 40; h = 46; y=groundY-h; color="#9b1c1c";
+    } else { // بركة
+      w = 78; h = 20; y=groundY-h+6; color="#2aa1ff";
+    }
+    obstacles.push({x: W+40, y, w, h, color, type: (type<0.33?'box':type<0.66?'spike':'pool')});
+  }
+
+  function spawnCoin(){
+    const y = groundY - (Math.random()<0.5? 120 : 70);
+    coins.push({x: W+30, y, r:10, taken:false, val:1});
+  }
+
+  function spawnFeather(){
+    const y = groundY - 140;
+    feathers.push({x: W+40, y, r:12, taken:false, time:2.2}); // 2.2 ثانية طيران خفيف
+  }
+
+  // ===== تحديث ورسم الخلفية =====
+  function drawBackground(dt){
+    const lv = levels[world.levelIdx];
+    // سماء
+    const grad = ctx.createLinearGradient(0,0,0,H*0.7);
+    grad.addColorStop(0, "#8fd3ff");
+    grad.addColorStop(1, lv.sky);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,W,H);
+
+    // تلال متحركة بسيطة
+    world.bgTick += dt * world.speed * 0.25;
+    for (let i=0;i<3;i++){
+      const yBase = groundY - 80 - i*24;
+      ctx.fillStyle = `rgba(60, ${120+i*30}, 80, ${0.18+i*0.07})`;
+      ctx.beginPath();
+      const offset = (world.bgTick*(0.4+i*0.25)) % (W);
+      ctx.moveTo(0, groundY);
+      for (let x=-W;x<=W*2;x+=40){
+        const X = x - offset;
+        const Y = yBase + Math.sin((x+i*50)*0.01)*20;
+        ctx.lineTo(X,Y);
+      }
+      ctx.lineTo(W,groundY); ctx.closePath(); ctx.fill();
     }
 
-    document.getElementById('year').textContent = new Date().getFullYear()
+    // أرضية
+    ctx.fillStyle = lv.color;
+    ctx.fillRect(0,groundY,W,H-groundY);
+    // خطوط عشب بسيطة
+    ctx.strokeStyle="rgba(0,0,0,.08)"; ctx.lineWidth=2;
+    for(let i=0;i<W;i+=24){
+      ctx.beginPath(); ctx.moveTo((i - (world.bgTick*1.2)%24), groundY);
+      ctx.lineTo((i - (world.bgTick*1.2)%24)+8, groundY-6); ctx.stroke();
+    }
+  }
 
-    // Scenes
-    function addScene(data = {}) {
-      const node = tpl.content.firstElementChild.cloneNode(true)
-      scenesEl.appendChild(node)
-      state.scenes.push({node})
-      renumber()
+  // ===== الحلقة الرئيسية =====
+  function update(dt){
+    if (!running || paused) return;
 
-      node.querySelector('.dur').value   = data.dur   ?? 5
-      node.querySelector('.desc').value  = data.desc  ?? ''
-      node.querySelector('.cam').value   = data.cam   ?? 'slow dolly-in'
-      node.querySelector('.elems').value = data.elems ?? ''
-
-      node.querySelector('.del').onclick = ()=>{ node.remove(); state.scenes = state.scenes.filter(s=>s.node!==node); renumber() }
-      node.querySelector('.dup').onclick = ()=> addScene({
-        dur: node.querySelector('.dur').value,
-        desc: node.querySelector('.desc').value,
-        cam: node.querySelector('.cam').value,
-        elems: node.querySelector('.elems').value
-      })
-      node.querySelector('.build').onclick = ()=> buildOne(node)
-      node.querySelector('.copy').onclick = ()=> copy(node.querySelector('.out').value)
+    // فيزياء اللاعب
+    const effG = player.flapTimer>0 ? G * 0.55 : G;
+    player.vy += effG * dt;
+    player.y += player.vy * dt;
+    if (player.y + player.h >= groundY){
+      player.y = groundY - player.h; player.vy = 0; player.onGround = true;
+    }
+    if (player.flapTimer>0){
+      player.flapTimer -= dt;
+      if (player.flapTimer < 0) player.flapTimer = 0;
     }
 
-    function renumber(){
-      $$('.scene').forEach((el,i)=> el.querySelector('.scene-index').textContent = i+1)
+    // تقدم العالم
+    updateLevel();
+    const vx = world.speed * dt;
+    world.distance += (world.speed * dt) / 2.4 * 0.01 * 100; // تقريب للتحويل إلى أمتار
+    scoreEl.textContent = Math.floor(world.distance);
+
+    // توليد عناصر
+    spawnObsT -= dt;
+    spawnCoinT -= dt;
+    spawnFeatT -= dt;
+
+    if (spawnObsT <= 0){
+      spawnObstacle();
+      const baseGap = clamp(1.05 - world.levelIdx*0.12, 0.6, 1.05);
+      spawnObsT = rand(baseGap, baseGap+0.8);
+    }
+    if (spawnCoinT <= 0){
+      spawnCoin();
+      spawnCoinT = rand(1.2, 2.0);
+    }
+    if (spawnFeatT <= 0){
+      if (Math.random() < 0.65) spawnFeather();
+      spawnFeatT = rand(7, 11);
     }
 
-    function buildOne(node){
-      const names = $('#names').value.trim()
-      const aspect = $('#aspect').value
-      const style  = $('#style').value
-      const dur    = Number(node.querySelector('.dur').value || 5)
-      const desc   = node.querySelector('.desc').value.trim()
-      const cam    = node.querySelector('.cam').value.trim()
-      const elems  = node.querySelector('.elems').value.trim()
+    // تحريك ورسم
+    drawBackground(dt);
 
-      const prompt = [
-        names ? `Title: ${names}` : '',
-        `Resolution: ${aspect}`,
-        `Visual style: ${style}`,
-        `Duration: ~${dur}s`,
-        desc && `Primary visuals: ${desc}`,
-        cam && `Camera: ${cam}`,
-        elems && `Key elements: ${elems}`,
-        `Lighting: soft, elegant, tasteful; no visible faces unless hands only`,
-        `Shot: clean composition, premium look, minimal background clutter`
-      ].filter(Boolean).join('\n')
-
-      node.querySelector('.out').value = prompt
-      return prompt
+    // عوائق
+    for (let i=obstacles.length-1;i>=0;i--){
+      const o = obstacles[i];
+      o.x -= world.speed * dt;
+      // رسم
+      ctx.fillStyle = o.color;
+      if (o.type==='spike'){
+        // مثلث شوك
+        ctx.beginPath();
+        ctx.moveTo(o.x,o.y+o.h); ctx.lineTo(o.x+o.w/2,o.y); ctx.lineTo(o.x+o.w,o.y+o.h); ctx.closePath(); ctx.fill();
+      } else {
+        roundRect(o.x,o.y,o.w,o.h,8,true,false);
+        if (o.type==='pool'){
+          ctx.fillStyle = "rgba(255,255,255,.2)";
+          ctx.fillRect(o.x+6,o.y+4,o.w-12,4);
+        }
+      }
+      // تصادم
+      if (aabb(player.x,player.y,player.w,player.h,o.x,o.y,o.w,o.h)){
+        // فقدان مسافة حاد وليس موت فوري
+        cat.lead -= 90;
+        obstacles.splice(i,1);
+      }
+      if (o.x+o.w < -20) obstacles.splice(i,1);
     }
 
-    function buildAll(){
-      const parts = []
-      $$('.scene').forEach(node=>{
-        const txt = buildOne(node)
-        parts.push('--- SCENE ---\n'+txt)
-      })
-      const full = parts.join('\n\n')
-      $('#finalOut').value = full
-      return full
+    // عملات الذرة
+    for (let i=coins.length-1;i>=0;i--){
+      const c = coins[i];
+      c.x -= world.speed * dt;
+      // رسم
+      ctx.fillStyle="#ffd166";
+      ctx.beginPath(); ctx.ellipse(c.x,c.y, c.r*1.15, c.r, 0, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle="rgba(255,255,255,.6)"; ctx.lineWidth=2; ctx.stroke();
+      // تصادم
+      if (!c.taken && aabb(player.x,player.y,player.w,player.h, c.x-c.r,c.y-c.r, c.r*2,c.r*2)){
+        c.taken = true; cornCount += c.val; cat.lead += 36;
+        coins.splice(i,1);
+      }
+      if (c.x < -30) coins.splice(i,1);
+    }
+    cornEl.textContent = cornCount;
+
+    // ريشة (جناح سحري)
+    for (let i=feathers.length-1;i>=0;i--){
+      const f = feathers[i];
+      f.x -= world.speed * dt;
+      // رسم
+      ctx.save();
+      ctx.translate(f.x, f.y);
+      ctx.rotate(Math.sin((performance.now()/400)+i)*0.2);
+      ctx.fillStyle="#b4f5ff";
+      ctx.beginPath();
+      ctx.moveTo(0,0); ctx.quadraticCurveTo(22,-8, 28,0); ctx.quadraticCurveTo(22,12, 0,10); ctx.closePath(); ctx.fill();
+      ctx.restore();
+      // تصادم
+      if (!f.taken && aabb(player.x,player.y,player.w,player.h, f.x-16,f.y-10, 32,20)){
+        f.taken = true; player.flapTimer = f.time; cat.lead += 24;
+        feathers.splice(i,1);
+      }
+      if (f.x < -40) feathers.splice(i,1);
     }
 
-    function copy(text){
-      navigator.clipboard.writeText(text || '').then(()=> {
-        const old = document.title
-        document.title = '✓ تم النسخ'
-        setTimeout(()=> document.title = old, 900)
-      })
+    // القط يقترب تدريجياً
+    cat.lead -= cat.approachRate * dt;
+    cat.lead = clamp(cat.lead, 0, 260);
+
+    // رسم اللاعب والقط
+    drawChicken(player.x, player.y, player.w, player.h);
+    const catX = player.x - cat.lead - (cat.w - player.w)/2;
+    drawCat(catX, cat.y, cat.w, cat.h);
+
+    // شريط المسافة
+    const percent = (cat.lead/260)*100;
+    leadFill.style.width = percent.toFixed(1) + '%';
+    leadFill.style.background = (percent<25) ? 'linear-gradient(90deg, var(--danger), #ff8d6c)' :
+                                 (percent<50) ? 'linear-gradient(90deg, #ffb020, #ffd166)' :
+                                                'linear-gradient(90deg, var(--ok), var(--accent))';
+
+    // التحقق من الإمساك
+    if (cat.lead <= 0){
+      gameOverScreen("أمسكك القط! 😿");
     }
+  }
 
-    // Buttons
-    document.getElementById('addScene').onclick = ()=> addScene()
-    document.getElementById('buildAll').onclick = ()=> buildAll()
-    document.getElementById('copyAll').onclick = ()=> copy($('#finalOut').value)
-    document.getElementById('downloadTxt').onclick = ()=>{
-      const blob = new Blob([$('#finalOut').value || buildAll()], {type:'text/plain;charset=utf-8'})
-      const a = document.createElement('a')
-      a.href = URL.createObjectURL(blob)
-      a.download = 'storyboard_prompts.txt'
-      document.body.appendChild(a); a.click(); a.remove()
-    }
-    document.getElementById('clearAll').onclick = ()=>{
-      scenesEl.innerHTML = ''; state.scenes = []; $('#finalOut').value=''
-    }
+  function loop(ts){
+    if (!running){ last = ts; requestAnimationFrame(loop); return; }
+    const dt = Math.min(0.032, (ts - last)/1000 || 0); // سقف 32ms
+    last = ts;
+    if (!paused) update(dt);
+    requestAnimationFrame(loop);
+  }
 
-    // Presets
-    const presetRings = [
-      {dur:5, desc:'زوج خواتم (ذهبي مع ألماسة + فضي) يدوران ببطء فوق خلفية بيضاء لامعة، انعكاس خفيف على سطح مرمري', cam:'macro orbit, gentle parallax', elems:'rings, marble surface, soft specular highlights'},
-      {dur:5, desc:'لقطة قريبة للألماسة تلتقط ومضات ضوء ذهبية، بتلات ورد تتساقط بخفة خارج نطاق التركيز', cam:'slow push-in', elems:'diamond sparkle, falling rose petals, bokeh'},
-      {dur:5, desc:'الخاتمان يلمسان بعضهما برفق ويتوقفان بتشكيل ♥ بسيط، اسم/شعار صغير أسفل الإطار', cam:'static elegant, micro jitter < 1%', elems:'subtle heart shape, minimal title safe-area'}
-    ]
-    const presetHands = [
-      {dur:6, desc:'يد العريس (بدون ملامح وجه) تمتد من اليمين ويد العروس من اليسار، الخلفية بيضاء ناعمة، يقتربان ببطء', cam:'centered, slow dolly-in', elems:'hands only, elegant sleeves, soft rim light'},
-      {dur:6, desc:'لقطة أقرب للتماس الأيدي، خاتم العروس الذهبي يلمع بإضاءة ناعمة، عمق ميدان ضحل', cam:'macro close-up', elems:'ring sparkle, creamy bokeh, soft glow'}
-    ]
-    const presetRoses = [
-      {dur:5, desc:'إطار ورد ثلاثي الأبعاد أنيق (أبيض وأحمر قليل) حول مساحة فارغة نظيفة، إطار ذهبي رفيع في الوسط', cam:'slight top-down, slow drift', elems:'3D floral frame, minimal gold border, empty center'},
-      {dur:5, desc:'تكبير خفيف نحو المركز لإبراز مساحة النص، بتلات متفرقة خارج الحافة لا تغطي الوسط', cam:'slow push-in', elems:'clean negative space, selective focus'}
-    ]
+  // ===== إدخال المستخدم =====
+  function tryJump(){
+    if (!running || paused) return;
+    player.jump();
+  }
 
-    function addPreset(arr){ arr.forEach(s=> addScene(s)) }
-    document.getElementById('addPresetRings').onclick = ()=> addPreset(presetRings)
-    document.getElementById('addPresetHands').onclick = ()=> addPreset(presetHands)
-    document.getElementById('addPresetRoses').onclick = ()=> addPreset(presetRoses)
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' || e.code === 'ArrowUp'){ e.preventDefault(); tryJump(); }
+    else if (e.code === 'KeyP'){ paused = !paused; }
+    else if (e.code === 'KeyR'){ resetGame(); }
+  }, {passive:false});
 
-    // Boot with one empty scene
-    addScene()
-  </script>
+  // لمس/نقر للقفز
+  ['pointerdown','touchstart'].forEach(ev => {
+    canvas.addEventListener(ev, () => {
+      if (!running && !gameOver) return;
+      tryJump();
+    }, {passive:true});
+  });
+
+  // زر البداية
+  startBtn.addEventListener('click', resetGame);
+
+  // ابدأ الحلقة
+  requestAnimationFrame(loop);
+})();
+</script>
 </body>
 </html>
