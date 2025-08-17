@@ -2,12 +2,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>بطاقات الدول — الوقت • الطقس • العملة</title>
+  <title>بطاقات الدول — ستايل ويدجت الطقس والساعة</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     html, body { height: 100%; }
-    body { background: #0f172a; /* slate-900 */ }
-    .card-gradient{ background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)); }
+    body { background: #0b1220; }
+    .glass { backdrop-filter: blur(8px); }
+    .soft-shadow { box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+    .card-base { position: relative; border-radius: 28px; overflow: hidden; }
+    .corner { position:absolute; width:120px; height:120px; background:rgba(0,0,0,.25); border-radius:50%; }
+    .corner.tl{ top:-60px; right:-60px; }
+    .corner.br{ bottom:-60px; left:-60px; }
   </style>
 </head>
 <body class="min-h-screen text-slate-100">
@@ -15,249 +20,205 @@
     <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <div class="flex items-center gap-3">
         <span class="text-2xl">🌍</span>
-        <h1 class="text-xl md:text-2xl font-bold">بطاقات الدول — الوقت • الطقس • العملة</h1>
+        <h1 class="text-xl md:text-2xl font-bold">بطاقات الدول — (شكل كرت مثل الصورة) الوقت • الطقس • العملة</h1>
       </div>
       <div class="flex flex-col md:flex-row gap-2 md:items-center w-full md:w-auto">
         <input id="search" type="text" placeholder="ابحث عن دولة…" class="w-full md:w-80 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-        <button id="refreshBtn" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 transition font-medium">تحديث البيانات</button>
+        <button id="refreshBtn" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 transition font-medium">تحديث</button>
       </div>
     </div>
   </header>  <main class="max-w-7xl mx-auto p-4">
-    <p class="text-slate-300 mb-4">يتطلب اتصالاً بالإنترنت لقراءة الطقس وأسعار الصرف. الوقت يُحسب محليًا حسب المنطقة الزمنية لكل دولة.</p>
-    <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
-  </main>  <footer class="max-w-7xl mx-auto p-6 text-sm text-slate-400">
-    <p>نصيحة: لإضافة دولة جديدة، أضف كائنًا جديدًا داخل المصفوفة <code>COUNTRIES</code> بالأسفل مع الإحداثيات والعملة والمنطقة الزمنية.</p>
-  </footer>  <script>
-    // ====== إعداد الدول (يمكنك تعديل/إضافة دول جديدة هنا) ======
+    <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
+  </main>  <script>
+    // ================= إعداد الدول =================
     const COUNTRIES = [
-      { code:'DE', name:'ألمانيا', tz:'Europe/Berlin', lat:52.52, lon:13.405, currency:{code:'EUR', symbol:'€', name:'اليورو'}, accent:'#FFD100', flag:'de' },
-      { code:'TR', name:'تركيا', tz:'Europe/Istanbul', lat:41.015137, lon:28.97953, currency:{code:'TRY', symbol:'₺', name:'الليرة التركية'}, accent:'#E30A17', flag:'tr' },
-      { code:'SA', name:'السعودية', tz:'Asia/Riyadh', lat:24.7136, lon:46.6753, currency:{code:'SAR', symbol:'﷼', name:'الريال السعودي'}, accent:'#006C35', flag:'sa' },
-      { code:'AE', name:'الإمارات', tz:'Asia/Dubai', lat:25.2048, lon:55.2708, currency:{code:'AED', symbol:'د.إ', name:'الدرهم الإماراتي'}, accent:'#00732F', flag:'ae' },
-      { code:'EG', name:'مصر', tz:'Africa/Cairo', lat:30.0444, lon:31.2357, currency:{code:'EGP', symbol:'£', name:'الجنيه المصري'}, accent:'#CE1126', flag:'eg' },
-      { code:'GB', name:'بريطانيا', tz:'Europe/London', lat:51.5072, lon:-0.1276, currency:{code:'GBP', symbol:'£', name:'الجنيه الإسترليني'}, accent:'#012169', flag:'gb' },
-      { code:'JP', name:'اليابان', tz:'Asia/Tokyo', lat:35.6762, lon:139.6503, currency:{code:'JPY', symbol:'¥', name:'الين الياباني'}, accent:'#B50014', flag:'jp' },
-      { code:'US', name:'أمريكا', tz:'America/New_York', lat:40.7128, lon:-74.0060, currency:{code:'USD', symbol:'$', name:'الدولار الأمريكي'}, accent:'#3C3B6E', flag:'us' },
-      { code:'FR', name:'فرنسا', tz:'Europe/Paris', lat:48.8566, lon:2.3522, currency:{code:'EUR', symbol:'€', name:'اليورو'}, accent:'#0055A4', flag:'fr' },
-      { code:'CH', name:'سويسرا', tz:'Europe/Zurich', lat:47.3769, lon:8.5417, currency:{code:'CHF', symbol:'Fr', name:'الفرنك السويسري'}, accent:'#D52B1E', flag:'ch' },
+      { code:'DE', name:'ألمانيا', tz:'Europe/Berlin', lat:52.52, lon:13.405, currency:{code:'EUR', symbol:'€', name:'اليورو'}, accent:'#2563eb', flag:'de' },
+      { code:'TR', name:'تركيا', tz:'Europe/Istanbul', lat:41.015137, lon:28.97953, currency:{code:'TRY', symbol:'₺', name:'الليرة التركية'}, accent:'#0ea5e9', flag:'tr' },
+      { code:'SA', name:'السعودية', tz:'Asia/Riyadh', lat:24.7136, lon:46.6753, currency:{code:'SAR', symbol:'﷼', name:'الريال السعودي'}, accent:'#0891b2', flag:'sa' },
+      { code:'AE', name:'الإمارات', tz:'Asia/Dubai', lat:25.2048, lon:55.2708, currency:{code:'AED', symbol:'د.إ', name:'الدرهم الإماراتي'}, accent:'#0ea5e9', flag:'ae' },
+      { code:'EG', name:'مصر', tz:'Africa/Cairo', lat:30.0444, lon:31.2357, currency:{code:'EGP', symbol:'£', name:'الجنيه المصري'}, accent:'#2563eb', flag:'eg' },
+      { code:'GB', name:'بريطانيا', tz:'Europe/London', lat:51.5072, lon:-0.1276, currency:{code:'GBP', symbol:'£', name:'الجنيه الإسترليني'}, accent:'#1d4ed8', flag:'gb' },
+      { code:'JP', name:'اليابان', tz:'Asia/Tokyo', lat:35.6762, lon:139.6503, currency:{code:'JPY', symbol:'¥', name:'الين الياباني'}, accent:'#1e40af', flag:'jp' },
+      { code:'US', name:'أمريكا', tz:'America/New_York', lat:40.7128, lon:-74.0060, currency:{code:'USD', symbol:'$', name:'الدولار الأمريكي'}, accent:'#2563eb', flag:'us' },
     ];
 
-    // ====== عناصر DOM ======
     const gridEl = document.getElementById('grid');
     const searchEl = document.getElementById('search');
     const refreshBtn = document.getElementById('refreshBtn');
 
-    // ====== بناء البطاقات ======
+    function gradient(accent){
+      return `linear-gradient(180deg, ${accent} 0%, rgba(14,165,233,0.9) 60%, rgba(2,6,23,0.85) 120%)`;
+    }
+
     function createCard(country){
-      const card = document.createElement('div');
-      card.className = 'card-gradient rounded-2xl overflow-hidden border border-slate-800 shadow-xl shadow-slate-900/40';
+      const card = document.createElement('article');
+      card.className = 'card-base soft-shadow border border-slate-800';
+      card.style.background = gradient(country.accent);
+      card.style.minHeight = '240px';
       card.dataset.countryName = country.name;
 
-      const accentBar = document.createElement('div');
-      accentBar.className = 'h-1.5 w-full';
-      accentBar.style.backgroundColor = country.accent;
+      // decorative corners (مثل الصورة)
+      const c1 = document.createElement('div'); c1.className='corner tl';
+      const c2 = document.createElement('div'); c2.className='corner br';
 
-      const inner = document.createElement('div');
-      inner.className = 'p-4 flex flex-col gap-3';
+      // ===== المحتوى المتموضع =====
+      const pad = document.createElement('div');
+      pad.className = 'absolute inset-0 p-5';
 
-      // Header: Flag + Country name
-      const header = document.createElement('div');
-      header.className = 'flex items-center gap-3';
-      header.innerHTML = `
-        <img src="https://flagcdn.com/w40/${country.flag.toLowerCase()}.png" alt="${country.name}" class="w-9 h-6 rounded shadow ring-1 ring-slate-700"/>
-        <div class="flex-1">
-          <h2 class="font-bold text-lg">${country.name}</h2>
-          <p class="text-slate-400 text-sm">${country.currency.name} (${country.currency.code})</p>
-        </div>
-      `;
+      // أعلى اليسار — أيقونة طقس بسيطة
+      const sun = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      sun.setAttribute('viewBox','0 0 100 100');
+      sun.classList.add('absolute');
+      sun.style.left='20px'; sun.style.top='22px'; sun.style.width='64px'; sun.style.height='64px';
+      sun.innerHTML = `<circle cx="50" cy="50" r="22" fill="#facc15"/>`;
 
-      // Time display
-      const timeBox = document.createElement('div');
-      timeBox.className = 'rounded-xl bg-slate-800/60 border border-slate-700 p-3 flex items-center justify-between';
-      timeBox.innerHTML = `
-        <div>
-          <div class="text-sm text-slate-400">الوقت الآن</div>
-          <div class="text-2xl font-bold" data-time></div>
-        </div>
-        <div class="text-right">
-          <div class="text-sm text-slate-400">المنطقة الزمنية</div>
-          <div class="font-mono text-sm" title="${country.tz}">${country.tz}</div>
-        </div>
-      `;
+      // أعلى اليمين — الحرارة واسم الدولة + العلم
+      const topRight = document.createElement('div');
+      topRight.className = 'absolute flex items-center gap-2';
+      topRight.style.right = '20px';
+      topRight.style.top = '18px';
+      topRight.innerHTML = `
+        <div class="text-5xl font-extrabold leading-none" data-temp>—°</div>
+        <div class="flex flex-col items-end">
+          <div class="flex items-center gap-2">
+            <img src="https://flagcdn.com/w40/${country.flag}.png" class="w-8 h-6 rounded ring-1 ring-white/30"/>
+            <span class="text-white/90 font-semibold">${country.name}</span>
+          </div>
+          <div class="text-white/70 text-xs mt-0.5">${country.tz}</div>
+        </div>`;
 
-      // Weather box
-      const weatherBox = document.createElement('div');
-      weatherBox.className = 'rounded-xl bg-slate-800/60 border border-slate-700 p-3 flex items-center justify-between';
-      weatherBox.innerHTML = `
-        <div>
-          <div class="text-sm text-slate-400">درجة الحرارة</div>
-          <div class="text-2xl font-bold"><span data-temp>—</span><span class="text-slate-300 text-base">°C</span></div>
-        </div>
-        <div class="text-right">
-          <div class="text-sm text-slate-400">آخر تحديث</div>
-          <div class="text-sm" data-weather-updated>—</div>
-        </div>
-      `;
+      // أسفل اليسار — الساعة والتاريخ كبير
+      const bottomLeft = document.createElement('div');
+      bottomLeft.className = 'absolute';
+      bottomLeft.style.left='20px';
+      bottomLeft.style.bottom='18px';
+      bottomLeft.innerHTML = `
+        <div class="text-white/90 text-sm" data-date>—</div>
+        <div class="text-5xl sm:text-6xl font-black tracking-tight" data-time>--:--</div>`;
 
-      // Currency box
-      const fxBox = document.createElement('div');
-      fxBox.className = 'rounded-xl bg-slate-800/60 border border-slate-700 p-3';
-      fxBox.innerHTML = `
-        <div class="flex items-center justify-between gap-3">
-          <div class="text-sm text-slate-400">سعر العملة مقابل الدولار</div>
-          <div class="text-xs text-slate-400" data-fx-updated>—</div>
-        </div>
-        <div class="mt-1 grid grid-cols-1 gap-1">
-          <div class="font-mono" data-fx-1usd>1 USD = — ${country.currency.code}</div>
-          <div class="font-mono" data-fx-1local>1 ${country.currency.code} = — USD</div>
-        </div>
-      `;
+      // أسفل اليمين — الغروب + سعر الصرف
+      const bottomRight = document.createElement('div');
+      bottomRight.className = 'absolute text-right';
+      bottomRight.style.right='20px';
+      bottomRight.style.bottom='18px';
+      bottomRight.innerHTML = `
+        <div class="text-white/90 text-sm" data-sunset>غروب الشمس: —</div>
+        <div class="text-white/90 text-xs mt-2" data-fx>1 USD = — ${country.currency.code}</div>`;
 
-      inner.appendChild(header);
-      inner.appendChild(timeBox);
-      inner.appendChild(weatherBox);
-      inner.appendChild(fxBox);
+      pad.appendChild(sun);
+      pad.appendChild(topRight);
+      pad.appendChild(bottomLeft);
+      pad.appendChild(bottomRight);
 
-      card.appendChild(accentBar);
-      card.appendChild(inner);
+      card.appendChild(pad);
+      card.appendChild(c1); card.appendChild(c2);
 
-      // attach live time updater
-      const timeEl = timeBox.querySelector('[data-time]');
-      function updateTime(){
-        try{
-          const now = new Date();
-          const formatter = new Intl.DateTimeFormat('ar-EG', {
-            timeZone: country.tz,
-            hour12: false,
-            hour: '2-digit', minute: '2-digit', second: '2-digit'
-          });
-          timeEl.textContent = formatter.format(now);
-        }catch(e){
-          timeEl.textContent = '— معرّف منطقة خاطئ';
-        }
-      }
-      updateTime();
-      setInterval(updateTime, 1000);
-
-      // store refs for later updates
+      // مراجع
       card._refs = {
-        tempEl: weatherBox.querySelector('[data-temp]'),
-        weatherUpdatedEl: weatherBox.querySelector('[data-weather-updated]'),
-        fx1usdEl: fxBox.querySelector('[data-fx-1usd]'),
-        fx1localEl: fxBox.querySelector('[data-fx-1local]'),
-        fxUpdatedEl: fxBox.querySelector('[data-fx-updated]')
+        time: bottomLeft.querySelector('[data-time]'),
+        date: bottomLeft.querySelector('[data-date]'),
+        temp: topRight.querySelector('[data-temp]'),
+        sunset: bottomRight.querySelector('[data-sunset]'),
+        fx: bottomRight.querySelector('[data-fx]')
       };
+
+      // مؤقت الوقت والتاريخ
+      function tick(){
+        const now = new Date();
+        try{
+          const t = new Intl.DateTimeFormat('ar-EG',{timeZone:country.tz,hour12:false,hour:'2-digit',minute:'2-digit'}).format(now);
+          const d = new Intl.DateTimeFormat('ar-EG',{timeZone:country.tz,weekday:'long',day:'numeric',month:'long'}).format(now);
+          card._refs.time.textContent = t;
+          card._refs.date.textContent = d;
+        }catch(e){ card._refs.time.textContent='—'; }
+      }
+      tick(); setInterval(tick, 1000);
 
       return card;
     }
 
-    // ====== إدراج كل البطاقات ======
-    const cardMap = new Map(); // code -> element
+    // ============= إدراج =============
+    const cardMap = new Map();
     function renderAll(){
       gridEl.innerHTML = '';
-      COUNTRIES.forEach(c => {
+      COUNTRIES.forEach(c=>{
         const el = createCard(c);
         gridEl.appendChild(el);
         cardMap.set(c.code, el);
       });
     }
 
-    // ====== الطقس: Open-Meteo (بدون مفتاح) ======
-    async function fetchWeather(country){
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${country.lat}&longitude=${country.lon}&current_weather=true&timezone=${encodeURIComponent(country.tz)}`;
+    // ============= طقس وغروب الشمس: Open‑Meteo =============
+    async function fetchWeatherAndSun(country){
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${country.lat}&longitude=${country.lon}&current_weather=true&daily=sunset&timezone=${encodeURIComponent(country.tz)}`;
       const r = await fetch(url);
-      if(!r.ok) throw new Error('Weather HTTP '+r.status);
+      if(!r.ok) throw new Error('weather http '+r.status);
       const data = await r.json();
-      const t = data?.current_weather?.temperature; // °C
-      return typeof t === 'number' ? t : null;
+      const temp = data?.current_weather?.temperature ?? null;
+      const sunsetISO = data?.daily?.sunset?.[0] ?? null; // بصيغة التوقيت المحلي
+      return { temp, sunsetISO };
     }
 
     async function updateAllWeather(){
       await Promise.all(COUNTRIES.map(async (c)=>{
-        const card = cardMap.get(c.code);
+        const el = cardMap.get(c.code);
         try{
-          const temp = await fetchWeather(c);
-          card._refs.tempEl.textContent = temp !== null ? temp.toLocaleString('ar-EG', {maximumFractionDigits: 1}) : '—';
-          card._refs.weatherUpdatedEl.textContent = new Date().toLocaleTimeString('ar-EG', { hour12:false });
-        }catch(err){
-          card._refs.tempEl.textContent = '—';
-          card._refs.weatherUpdatedEl.textContent = 'فشل التحديث';
+          const {temp, sunsetISO} = await fetchWeatherAndSun(c);
+          el._refs.temp.textContent = (temp!==null? Math.round(temp): '—') + '°';
+          if(sunsetISO){
+            const t = new Date(sunsetISO);
+            const hh = t.getHours().toString().padStart(2,'0');
+            const mm = t.getMinutes().toString().padStart(2,'0');
+            el._refs.sunset.textContent = `غروب الشمس: ${hh}:${mm}`;
+          }else{
+            el._refs.sunset.textContent = 'غروب الشمس: —';
+          }
+        }catch(e){
+          el._refs.temp.textContent = '—°';
+          el._refs.sunset.textContent = 'غروب الشمس: —';
         }
       }));
     }
 
-    // ====== أسعار الصرف: exchangerate.host (بدون مفتاح) ======
-    function collectSymbols(){
-      const set = new Set();
-      COUNTRIES.forEach(c => set.add(c.currency.code));
-      set.delete('USD'); // لا حاجة له في الاستعلام (ثابت)
-      return Array.from(set);
-    }
-
+    // ============= أسعار الصرف: exchangerate.host =============
+    function collectSymbols(){ const s=new Set(); COUNTRIES.forEach(c=>s.add(c.currency.code)); s.delete('USD'); return [...s]; }
     async function fetchRates(){
       const symbols = collectSymbols();
-      if(symbols.length === 0) return {};
-      const url = `https://api.exchangerate.host/latest?base=USD&symbols=${symbols.join(',')}`;
-      const r = await fetch(url);
-      if(!r.ok) throw new Error('FX HTTP '+r.status);
-      const data = await r.json();
-      return data?.rates || {};
+      if(symbols.length===0) return {};
+      const r = await fetch(`https://api.exchangerate.host/latest?base=USD&symbols=${symbols.join(',')}`);
+      if(!r.ok) throw new Error('fx http '+r.status);
+      const data = await r.json(); return data?.rates||{};
     }
-
     async function updateAllFX(){
-      let rates = {};
-      try{
-        rates = await fetchRates();
-      }catch(err){
-        // عرض فشل عام
-      }
-      COUNTRIES.forEach(c => {
-        const card = cardMap.get(c.code);
-        if(c.currency.code === 'USD'){
-          card._refs.fx1usdEl.textContent = `1 USD = 1.0000 USD`;
-          card._refs.fx1localEl.textContent = `1 USD = 1.0000 USD`; // عرض بسيط
-          card._refs.fxUpdatedEl.textContent = new Date().toLocaleTimeString('ar-EG', { hour12:false });
-          return;
-        }
-        const perUSD = rates[c.currency.code]; // كم من العملة المحلية مقابل 1 دولار
-        if(typeof perUSD === 'number' && perUSD > 0){
-          const oneLocalInUSD = 1 / perUSD;
-          card._refs.fx1usdEl.textContent = `1 USD = ${perUSD.toLocaleString('ar-EG', {maximumFractionDigits: 4})} ${c.currency.code}`;
-          card._refs.fx1localEl.textContent = `1 ${c.currency.code} = ${oneLocalInUSD.toLocaleString('ar-EG', {maximumFractionDigits: 4})} USD`;
-          card._refs.fxUpdatedEl.textContent = new Date().toLocaleTimeString('ar-EG', { hour12:false });
-        }else{
-          card._refs.fx1usdEl.textContent = `1 USD = — ${c.currency.code}`;
-          card._refs.fx1localEl.textContent = `1 ${c.currency.code} = — USD`;
-          card._refs.fxUpdatedEl.textContent = 'فشل التحديث';
-        }
+      let rates={}; try{ rates=await fetchRates(); }catch(e){}
+      COUNTRIES.forEach(c=>{
+        const el = cardMap.get(c.code);
+        if(c.currency.code==='USD'){ el._refs.fx.textContent = '1 USD = 1.0000 USD'; return; }
+        const perUSD = rates[c.currency.code];
+        if(typeof perUSD==='number' && perUSD>0){
+          el._refs.fx.textContent = `1 USD = ${perUSD.toLocaleString('ar-EG',{maximumFractionDigits:4})} ${c.currency.code}`;
+        }else{ el._refs.fx.textContent = `1 USD = — ${c.currency.code}`; }
       });
     }
 
-    // ====== البحث/الفلترة ======
-    searchEl.addEventListener('input', () => {
+    // ============= بحث =============
+    searchEl.addEventListener('input',()=>{
       const q = searchEl.value.trim();
-      const norm = q;
-      cardMap.forEach((el) => {
-        const name = el.dataset.countryName || '';
-        const show = name.includes(norm);
+      gridEl.querySelectorAll('article').forEach(el=>{
+        const show = (el.dataset.countryName||'').includes(q);
         el.style.display = show ? '' : 'none';
       });
     });
 
-    // ====== زر التحديث ======
     async function refreshAll(){
-      refreshBtn.disabled = true;
-      refreshBtn.textContent = 'جارِ التحديث…';
+      refreshBtn.disabled=true; refreshBtn.textContent='جارِ التحديث…';
       await Promise.all([updateAllWeather(), updateAllFX()]);
-      refreshBtn.textContent = 'تحديث البيانات';
-      refreshBtn.disabled = false;
+      refreshBtn.textContent='تحديث'; refreshBtn.disabled=false;
     }
     refreshBtn.addEventListener('click', refreshAll);
 
-    // ====== بدء التشغيل ======
-    (async function init(){
-      renderAll();
-      await refreshAll();
-    })();
+    (async function init(){ renderAll(); await refreshAll(); })();
+  </script></body>
+</html>    })();
   </script></body>
 </html>
