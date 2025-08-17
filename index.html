@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>بطاقات الدول — أونلاين/أوفلاين + كاش + ألوان من العلم</title>
+  <title>بطاقات الدول — أونلاين/أوفلاين + كاش + رموز وتراث</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root { color-scheme: dark; }
@@ -28,7 +28,7 @@
     <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <div class="flex items-center gap-3">
         <span class="text-2xl">🌍</span>
-        <h1 class="text-xl md:text-2xl font-bold">بطاقات الدول — أونلاين/أوفلاين + كاش + ألوان من العلم</h1>
+        <h1 class="text-xl md:text-2xl font-bold">بطاقات الدول — أونلاين/أوفلاين + كاش + رموز وتراث</h1>
       </div>
       <div class="flex flex-col md:flex-row gap-2 md:items-center w-full md:w-auto">
         <input id="search" type="text" placeholder="ابحث: دولة / عملة…" class="w-full md:w-96 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
@@ -40,13 +40,12 @@
 
   <main class="max-w-7xl mx-auto p-4">
     <div id="hint" class="mb-3 text-slate-300 text-sm">
-      أونلاين مفعّل افتراضيًا. اضغط على أي بطاقة لفتحها وجلب الطقس/الأسعار/الأخبار. يعمل أوفلاين أيضًا.
+      أونلاين مفعّل افتراضيًا. اضغط بطاقة لفتحها وجلب الطقس/الأسعار/الأخبار. يعمل أوفلاين أيضًا.
     </div>
     <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
   </main>
 
   <script>
-    // ===== عناصر عامة
     const gridEl = document.getElementById('grid');
     const searchEl = document.getElementById('search');
     const toggleOnlineBtn = document.getElementById('toggleOnline');
@@ -56,7 +55,7 @@
     // شغّال افتراضيًا
     let ENABLE_ONLINE = true;
 
-    // ===== ألوان هادئة افتراضية
+    // تدرّج هادئ
     function hashHue(str){ let h=0; for(let i=0;i<(str||'').length;i++){ h=(h*31 + str.charCodeAt(i))>>>0; } return h%360; }
     function themeFromCode(code){ const h=hashHue(code||'XX'); return { from:`hsl(${h} 70% 45%)`, to:`hsl(${(h+18)%360} 75% 58%)` }; }
     function gradient(theme, night=false){
@@ -65,12 +64,24 @@
       return `linear-gradient(135deg, ${from} 0%, ${to} 70%)`;
     }
 
-    // ===== كاش
-    const TTL = { countries: 365*24*60*60*1000, weather: 30*60*1000, fx: 12*60*60*1000, news: 30*60*1000, theme: 365*24*60*60*1000 };
+    // رموز تراثية / بدائل حسب المنطقة
+    const HERITAGE = {
+      AE:'🏙️', SA:'🕋', EG:'🗿', MA:'🕌', TN:'🏺', DZ:'⛰️', QA:'🏟️', KW:'🛢️', BH:'⚓', OM:'🏜️', JO:'🏛️', LB:'🌲', IQ:'🏺', SY:'🏛️', YE:'🕌',
+      TR:'🕌', IR:'🏛️', IL:'🕍', PS:'🕌',
+      IN:'🛕', CN:'🏮', JP:'🗻', KR:'🔗',
+      DE:'🏛️', FR:'🗼', ES:'⛪', PT:'⛵', IT:'🏛️', NL:'🌷', BE:'🧇', CH:'⛰️', GB:'🕰️',
+      US:'🗽', CA:'🍁', MX:'🪅', BR:'⚽', AR:'🧉',
+      AU:'🦘', NZ:'🌀'
+    };
+    const REGION_FALLBACK = { 'Africa':'🌍','Asia':'🏯','Europe':'🏰','Americas':'🗽','Oceania':'🏝️','Antarctic':'❄️','أفريقيا':'🌍','آسيا':'🏯','أوروبا':'🏰','أمريكا':'🗽','أوقيانوسيا':'🏝️' };
+    function pickSymbol(code, region){ return HERITAGE[code] || REGION_FALLBACK[region] || '🌐'; }
+
+    // كاش
+    const TTL = { countries: 365*24*60*60*1000, weather: 30*60*1000, fx: 12*60*60*1000, news: 30*60*1000 };
     function setCache(key, value){ try{ localStorage.setItem(key, JSON.stringify({ t: Date.now(), v: value })); }catch{} }
     function getCache(key, ttl){ try{ const s = localStorage.getItem(key); if(!s) return null; const {t,v} = JSON.parse(s); if(ttl && Date.now()-t>ttl) return null; return v; }catch{ return null } }
 
-    // ===== أوفلاين 50 دولة (مختصرة)
+    // أوفلاين 50 دولة مختصرة
     const OFFLINE50 = [
       ['BD','Bangladesh','UTC+06:00',23.8103,90.4125,'BDT','bd','Asia'],
       ['BB','Barbados','UTC-04:00',13.0975,-59.6167,'BBD','bb','Americas'],
@@ -113,7 +124,7 @@
 
     let COUNTRIES = [];
 
-    // ===== أيقونات الطقس
+    // أيقونات الطقس
     function iconSVGByWeather(code, is_day){
       const sun = `<circle cx='50' cy='50' r='24' fill='#facc15'/>`;
       const moon = `<path d='M64 50a22 22 0 1 1-28-28a24 24 0 1 0 28 28z' fill='#e5e7eb'/>`;
@@ -133,9 +144,9 @@
       return `<svg viewBox='0 0 100 100'>${cloud}</svg>`;
     }
 
-    // ===== تحويل UTC±HH:MM إلى وقت محلي (لعرض الساعة فقط)
+    // تحويل UTC±HH:MM لوقت محلي (لعرض الساعة فقط)
     function parseUtcOffset(tz){
-      const m = /^UTC([+-])(\\d{2}):(\\d{2})$/.exec(tz||'');
+      const m = /^UTC([+-])(\d{2}):(\d{2})$/.exec(tz||'');
       if(!m) return null;
       const sign = m[1]==='-'? -1:1; const h=+m[2], mi=+m[3];
       return sign*(h*60+mi);
@@ -148,7 +159,7 @@
           date: new Intl.DateTimeFormat('ar-EG',{timeZone:tz,weekday:'long',day:'numeric',month:'long'}).format(now)
         };
       }
-      const localOff = now.getTimezoneOffset(); // بالدقائق، سالب للشرق
+      const localOff = now.getTimezoneOffset();
       const ms = now.getTime() + (off - (-localOff)) * 60000;
       const d = new Date(ms);
       const hh = String(d.getHours()).padStart(2,'0');
@@ -158,7 +169,7 @@
       return { time: `${hh}:${mm}`, date: `${weekdays[d.getDay()]}، ${d.getDate()} ${months[d.getMonth()]}` };
     }
 
-    // ===== إنشاء بطاقة
+    // بطاقة
     function createCard(c){
       const card = document.createElement('article');
       card.className = 'card-base';
@@ -171,12 +182,13 @@
 
       const pad = document.createElement('div'); pad.className='absolute inset-0 p-5';
 
+      // أيقونة الطقس
       const iconEl = document.createElement('div');
       iconEl.className = 'absolute detail';
-      iconEl.style.left='20px'; iconEl.style.top='18px';
-      iconEl.style.width='72px'; iconEl.style.height='72px';
+      iconEl.style.left='20px'; iconEl.style.top='18px'; iconEl.style.width='72px'; iconEl.style.height='72px';
       iconEl.innerHTML = iconSVGByWeather(1,true);
 
+      // أعلى يمين
       const topRight = document.createElement('div');
       topRight.className = 'absolute flex items-center gap-2';
       topRight.style.right='20px'; topRight.style.top='18px';
@@ -190,16 +202,19 @@
           <div class="text-white/70 text-xs mt-0.5" data-tz>${c.tz}</div>
         </div>`;
 
+      // أسفل يسار — الوقت والتاريخ
       const bottomLeft = document.createElement('div');
       bottomLeft.className = 'absolute detail';
       bottomLeft.style.left='20px'; bottomLeft.style.bottom='48px';
       bottomLeft.innerHTML = `<div class="text-white/90 text-sm" data-date>—</div><div class="text-5xl sm:text-6xl font-black tracking-tight" data-time>--:--</div>`;
 
+      // أسفل يمين — الغروب + سعر الصرف
       const bottomRight = document.createElement('div');
       bottomRight.className = 'absolute text-right detail';
       bottomRight.style.right='20px'; bottomRight.style.bottom='48px';
       bottomRight.innerHTML = `<div class="text-white/90 text-sm" data-sunset>غروب الشمس: —</div><div class="text-white/90 text-xs mt-2" data-fx>1 USD = — ${c.currency.code}</div>`;
 
+      // شريط خبر عاجل
       const newsBar = document.createElement('div');
       newsBar.className = 'news-bar detail text-[13px] text-slate-100';
       newsBar.style.padding = '6px 20px';
@@ -209,12 +224,21 @@
       pad.appendChild(topRight);
       pad.appendChild(bottomLeft);
       pad.appendChild(bottomRight);
+
+      // رمز تراثي كبير أسفل اليسار
+      const heritageEl = document.createElement('div');
+      heritageEl.className='absolute select-none';
+      heritageEl.style.left='20px'; heritageEl.style.bottom='78px';
+      heritageEl.style.fontSize='42px'; heritageEl.style.opacity='0.9';
+      heritageEl.textContent = pickSymbol(c.code, c.region);
+      pad.appendChild(heritageEl);
+
       pad.appendChild(newsBar);
 
       card.appendChild(pad);
       card.appendChild(c1); card.appendChild(c2);
 
-      // ساعة وتاريخ (تعمل حتى مع UTC±)
+      // ساعة وتاريخ (حتى مع UTC±)
       function tick(){
         const now = new Date();
         try{
@@ -225,6 +249,7 @@
       }
       tick(); setInterval(tick,1000);
 
+      // فتح/طي + جلب أونلاين
       card.addEventListener('click', async ()=>{
         const expanded = card.dataset.expanded === '1';
         card.style.transform = 'scale(1.03)'; setTimeout(()=> card.style.transform='', 160);
@@ -240,7 +265,7 @@
       COUNTRIES.forEach(c=> gridEl.appendChild(createCard(c)));
     }
 
-    // ===== أخبار عاجلة (محاولات متعددة + كاش)
+    // أخبار عاجلة (محاولات متعددة + كاش)
     async function fetchCountryHeadlines(code){
       const cacheKey = `cache:news:${code}`; const cached = getCache(cacheKey, TTL.news); if(cached) return cached;
       const cc = (code||'').toUpperCase();
@@ -262,49 +287,9 @@
       return [];
     }
 
-    // ===== استخراج ألوان من علم الدولة (SVG) + كاش
-    async function applyFlagTheme(c, card){
-      const key = `cache:flagTheme:${c.code}`;
-      let theme = getCache(key, TTL.theme);
-      if(theme){ card.style.background = gradient(theme,false); return; }
-      const tryUrls = [
-        `https://flagcdn.com/${c.flag}.svg`,
-        `https://restcountries.com/v3.1/alpha/${c.code}` // رجوع للـSVG عبر REST
-      ];
-      try{
-        let svgText=null;
-        for(const u of tryUrls){
-          if(u.includes('restcountries')){
-            const r=await fetch(u); if(r.ok){ const j=await r.json(); const svgUrl = j?.[0]?.flags?.svg; if(svgUrl){ const r2=await fetch(svgUrl); if(r2.ok){ svgText = await r2.text(); break; } } }
-          } else {
-            const r=await fetch(u); if(r.ok){ svgText = await r.text(); break; }
-          }
-        }
-        if(svgText){
-          const colors=[]; const doc=new DOMParser().parseFromString(svgText,'image/svg+xml');
-          doc.querySelectorAll('*').forEach(el=>{
-            const f=el.getAttribute('fill'); const s=el.getAttribute('stroke');
-            const push = (v)=>{ if(!v) return; const vv=v.toLowerCase(); if(vv==='none'||vv==='transparent') return; colors.push(v); };
-            push(f); push(s);
-          });
-          const usable = colors.filter(h=>!/^#?0{3,6}$/i.test(h) && !/^#?f{3,6}$/i.test(h)); // استبعاد الأبيض والأسود
-          if(usable.length){
-            const first = usable[0];
-            const second = usable.find(x => x!==first) || '#8b5cf6';
-            theme = { from:first, to:second };
-            setCache(key, theme);
-            card.style.background = gradient(theme,false);
-          }
-        }
-      }catch{/* نتجاهل ونبقى على الألوان الافتراضية */}
-    }
-
-    // ===== طقس/غروب + أسعار + أخبار
+    // طقس/غروب + أسعار
     async function hydrateOnline(c, card){
-      // لو قدرنا نجيب ألوان العلم — نطبّقها
-      applyFlagTheme(c, card);
-
-      // طقس (timezone=auto لتفادي مشاكل IANA)
+      // طقس (timezone=auto لتفادي مشاكل IANA/UTC±)
       try{
         const wKey = `cache:weather:${c.code}`; let payload = getCache(wKey, TTL.weather);
         if(!payload){
@@ -331,7 +316,7 @@
         if(rate){ card.querySelector('[data-fx]').textContent = `1 USD = ${Number(rate).toLocaleString('ar-EG',{maximumFractionDigits:4})} ${c.currency.code}`; }
       }catch{}
 
-      // أخبار عاجلة
+      // أخبار
       try{
         const titles = await fetchCountryHeadlines(c.code);
         const text = titles.length ? titles.join(' • ') : '— لا توجد عناوين متاحة —';
@@ -343,7 +328,7 @@
       }
     }
 
-    // ===== جلب كل الدول (أونلاين → كاش)
+    // جلب كل الدول (أونلاين → كاش)
     async function fetchAllCountriesOnline(){
       const key = 'cache:countries_full'; const cached = getCache(key, TTL.countries);
       if(cached && Array.isArray(cached) && cached.length>100) return cached;
@@ -371,7 +356,7 @@
       setCache(key, list); return list;
     }
 
-    // ===== بحث
+    // بحث
     searchEl.addEventListener('input',()=>{
       const q = searchEl.value.trim().toLowerCase();
       gridEl.querySelectorAll('article').forEach(el=>{
@@ -380,7 +365,7 @@
       });
     });
 
-    // ===== الأزرار
+    // الأزرار
     toggleOnlineBtn.addEventListener('click',()=>{
       ENABLE_ONLINE = !ENABLE_ONLINE;
       toggleOnlineBtn.textContent = ENABLE_ONLINE? 'إيقاف المزايا أونلاين' : 'تشغيل المزايا أونلاين';
@@ -395,7 +380,7 @@
       cacheCountriesBtn.textContent='حفظ كل الدول في الكاش'; cacheCountriesBtn.disabled=false;
     });
 
-    // ===== بدء
+    // بدء
     (function init(){
       const cachedList = getCache('cache:countries_full', TTL.countries);
       COUNTRIES = (cachedList && cachedList.length ? cachedList : OFFLINE50);
