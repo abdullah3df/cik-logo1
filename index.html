@@ -81,7 +81,66 @@
 
     // ===== الدول (REST Countries) =====
     let COUNTRIES = [];
+    const FALLBACK = [
+      { code:'DE', name:'ألمانيا', tz:'Europe/Berlin', lat:52.52, lon:13.405, currency:{code:'EUR', symbol:'€', name:'اليورو'}, region:'Europe' },
+      { code:'SA', name:'السعودية', tz:'Asia/Riyadh', lat:24.7136, lon:46.6753, currency:{code:'SAR', symbol:'﷼', name:'الريال السعودي'}, region:'Asia' },
+      { code:'EG', name:'مصر', tz:'Africa/Cairo', lat:30.0444, lon:31.2357, currency:{code:'EGP', symbol:'£', name:'الجنيه المصري'}, region:'Africa' },
+      { code:'TR', name:'تركيا', tz:'Europe/Istanbul', lat:41.015137, lon:28.97953, currency:{code:'TRY', symbol:'₺', name:'الليرة التركية'}, region:'Asia' },
+      { code:'US', name:'الولايات المتحدة', tz:'America/New_York', lat:40.7128, lon:-74.0060, currency:{code:'USD', symbol:'$', name:'الدولار الأمريكي'}, region:'Americas' },
+      { code:'JP', name:'اليابان', tz:'Asia/Tokyo', lat:35.6762, lon:139.6503, currency:{code:'JPY', symbol:'¥', name:'الين الياباني'}, region:'Asia' },
+    ];
     async function loadAllCountries(){
+      const endpoints = [
+        'https://restcountries.com/v3.1/all?fields=name,cca2,capital,capitalInfo,latlng,region,timezones,currencies,flags',
+        // بديل قديم (v2):
+        'https://restcountries.com/v2/all?fields=name,alpha2Code,capital,latlng,region,timezones,currencies,flag'
+      ];
+      let items = null;
+      for(const url of endpoints){
+        try{
+          const r = await fetch(url);
+          if(!r.ok) continue;
+          items = await r.json();
+          if(Array.isArray(items) && items.length) break;
+        }catch{ /* جرّب التالي */ }
+      }
+      if(!items){
+        // فشل كامل — استخدم قائمة افتراضية سريعة ليظهر شيء للمستخدم
+        COUNTRIES = FALLBACK.map(it=>({
+          ...it,
+          theme: themeFromCode(it.code),
+          flag: it.code.toLowerCase(),
+          symbol: (CONTINENT_SYMBOL[it.region] || '🌐')
+        }));
+        return;
+      }
+      // تطبيع الشكل من v3 أو v2
+      COUNTRIES = items.map(it => {
+        const isV3 = !!it.cca2;
+        const code = (isV3? it.cca2 : it.alpha2Code) || 'XX';
+        const name = (isV3? it.name?.common : it.name) || code;
+        const tz   = (isV3? it.timezones?.[0] : it.timezones?.[0]) || 'UTC';
+        const capitalLatLng = isV3? (it.capitalInfo?.latlng || null) : null;
+        const latlng = capitalLatLng || it.latlng || [0,0];
+        const lat = latlng[0]||0, lon = latlng[1]||0;
+        let curKey, curObj;
+        if(isV3){
+          curKey = it.currencies ? Object.keys(it.currencies)[0] : 'USD';
+          curObj = it.currencies?.[curKey] || { name:'Currency', symbol:'$', code:'USD' };
+        } else {
+          curKey = (it.currencies && it.currencies[0] && it.currencies[0].code) || 'USD';
+          const sym = (it.currencies && it.currencies[0] && it.currencies[0].symbol) || '$';
+          const nm  = (it.currencies && it.currencies[0] && it.currencies[0].name) || 'Currency';
+          curObj = { name:nm, symbol:sym, code:curKey };
+        }
+        const currency = { code: curKey || 'USD', symbol: curObj.symbol || '$', name: curObj.name || 'Currency' };
+        const region = it.region || 'World';
+        const theme = themeFromCode(code);
+        const flag = (code||'').toLowerCase();
+        const symbol = CONTINENT_SYMBOL[region] || '🌐';
+        return { code, name, tz, lat, lon, currency, theme, flag, symbol, region };
+      }).sort((a,b)=> a.name.localeCompare(b.name,'ar'));
+    }{
       const r = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,capital,capitalInfo,latlng,region,timezones,currencies,flags');
       if(!r.ok) throw new Error('countries http '+r.status);
       const items = await r.json();
@@ -330,14 +389,16 @@
 
     (async function init(){
       try{
+        // مبدئيًّا: أظهر هياكل مؤقتة حتى لو فشل التحميل
+        gridEl.innerHTML = new Array(8).fill(0).map(()=>`<div class='card-base animate-pulse' data-expanded='0' style='height:120px; background:linear-gradient(180deg,#1f2937 0%,#111827 80%)'></div>`).join('');
         hintEl.textContent = 'جاري تحميل الدول…';
         await loadAllCountries();
-        hintEl.textContent = 'تم — اضغط على أي بطاقة لفتحها، ثم تحديث لجلب الطقس والأسعار.';
         renderAll();
         await refreshAll();
-        hintEl.textContent = 'جاهز.';
+        hintEl.textContent = COUNTRIES.length ? 'جاهز.' : 'تعمل بالقائمة الافتراضية (وضع احتياطي)';
       }catch(e){
-        hintEl.textContent = 'فشل تحميل قائمة الدول.';
+        renderAll();
+        hintEl.textContent = 'تعذر تحميل قائمة الدول — تم تفعيل قائمة افتراضية.';
       }
     })();
   </script></body>
