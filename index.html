@@ -2,43 +2,27 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-<title>هروب الفرخة 🐔</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>هروب الفرخة — نسخة Sprites احترافية</title>
 <style>
-  :root { --bg:#0e1013; --panel:#151922; --text:#e8eef7; --accent:#ffd166; --danger:#ff4d4f; --ok:#30d158;}
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:linear-gradient(#1a1f2a,#0e1013) fixed;font-family:system-ui,Segoe UI,Roboto,Arial}
-  .wrap{display:flex;align-items:center;justify-content:center;min-height:100%;}
-  canvas{background:linear-gradient(#8fd3ff,#dff4ff 60%,#a1e6a1); border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.35); max-width:100%; height:auto;}
-  .hud{
-    position:fixed; inset:auto 0 16px 0; display:flex; justify-content:center; pointer-events:none;
-  }
-  .bar{
-    display:flex; gap:12px; align-items:center; padding:8px 12px; border-radius:999px;
-    background:rgba(0,0,0,.3); color:#fff; backdrop-filter:blur(6px); font-weight:600;
-  }
-  .lead{
-    width:180px; height:10px; background:#222a; border-radius:999px; overflow:hidden; outline:1px solid #fff2;
-  }
-  .lead > i{ display:block; height:100%; width:50%; background:linear-gradient(90deg, var(--ok), var(--accent));}
-  .pill{padding:6px 10px; background:#0008; border-radius:999px; font-weight:700}
-  .overlay{
-    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
-    background:linear-gradient(180deg,rgba(14,16,19,.85),rgba(14,16,19,.65));
-    color:var(--text); text-align:center; padding:24px;
-  }
-  .card{
-    width:min(92vw,680px); background:var(--panel); border:1px solid #ffffff18; border-radius:20px; padding:24px; box-shadow:0 10px 40px #0008;
-  }
-  h1{margin:.2em 0 .3em;font-size:2rem}
-  h2{margin:.6em 0 .3em}
-  .kbd{display:inline-block; padding:.25em .55em; border:1px solid #fff3; border-bottom-width:3px; border-radius:8px; background:#0006; font-weight:700}
-  .btn{
-    margin-top:14px; display:inline-block; padding:10px 16px; background:var(--accent); color:#272a2f; font-weight:800;
-    border:none; border-radius:999px; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,.35);
-  }
-  .btn:hover{filter:brightness(1.05)}
-  .note{opacity:.8; font-size:.95rem}
+  :root{--bg:#0e1013;--panel:#151922;--text:#e8eef7;--accent:#ffd166;--danger:#ff4d4f;--ok:#30d158}
+  *{box-sizing:border-box} html,body{height:100%;margin:0;background:linear-gradient(#1a1f2a,#0e1013);font-family:system-ui,Segoe UI,Roboto,Arial}
+  .wrap{display:flex;align-items:center;justify-content:center;min-height:100%}
+  canvas{background:linear-gradient(#8fd3ff,#dff4ff 60%,#a1e6a1);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35);max-width:100%;height:auto}
+  .hud{position:fixed;inset:auto 0 10px 0;display:flex;justify-content:center;pointer-events:none}
+  .bar{display:flex;gap:12px;align-items:center;padding:8px 12px;border-radius:999px;background:#0006;color:#fff;backdrop-filter:blur(6px);font-weight:700}
+  .lead{width:180px;height:10px;background:#222a;border-radius:999px;overflow:hidden;outline:1px solid #fff2}
+  .lead>i{display:block;height:100%;width:50%;background:linear-gradient(90deg,var(--ok),var(--accent))}
+  .pill{padding:6px 10px;background:#0008;border-radius:999px}
+  .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(14,16,19,.85),rgba(14,16,19,.6));color:var(--text);text-align:center;padding:20px}
+  .card{width:min(92vw,720px);background:var(--panel);border:1px solid #ffffff18;border-radius:20px;padding:20px;box-shadow:0 10px 40px #0008}
+  h1{margin:.2em 0 .3em;font-size:1.9rem} .kbd{padding:.25em .55em;border:1px solid #fff3;border-bottom-width:3px;border-radius:8px;background:#0006;font-weight:800}
+  .btn{margin-top:10px;display:inline-block;padding:10px 16px;background:var(--accent);color:#272a2f;font-weight:900;border:none;border-radius:999px;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.35)}
+  .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+  .uploader{display:flex;align-items:center;gap:8px;background:#0c0f15;border:1px solid #ffffff22;color:#cfe3ff;border-radius:12px;padding:8px 10px}
+  label{font-size:.9rem;opacity:.9}
+  input[type="number"]{width:72px;background:#0c0f15;color:#fff;border:1px solid #ffffff22;border-radius:8px;padding:6px}
+  input[type="file"]{accent-color:#ffd166}
 </style>
 </head>
 <body>
@@ -50,434 +34,240 @@
     <div class="bar">
       <span>المسافة: <span id="score">0</span>م</span>
       <span class="pill" id="levelName">القرية</span>
-      <div class="lead" title="المسافة بين الفرخة والقط">
-        <i id="leadFill" style="width:50%"></i>
-      </div>
+      <div class="lead" title="المسافة عن القط"><i id="leadFill"></i></div>
       <span>🟡 <span id="corn">0</span></span>
     </div>
   </div>
 
   <div id="overlay" class="overlay">
     <div class="card">
-      <h1>هروب الفرخة 🐔</h1>
-      <p>ساعد الغرخ الدجاج يهرب من القط! اقفز فوق العوائق واجمع الذرة لزيادة المسافة عن القط.</p>
-      <h2>التحكم</h2>
-      <p><span class="kbd">مسافة</span> أو لمسة/نقرة = قفز<br>
-         <span class="kbd">P</span> إيقاف مؤقت • <span class="kbd">R</span> إعادة</p>
+      <h1>هروب الفرخة 🐔 — رسومات احترافية (PNG Sprites)</h1>
+      <p>ارفع Sprite الفرخة والقط (PNG شفاف) أو ضعهما بجانب الملف بالأسماء <b>assets/chicken_run.png</b> و <b>assets/cat_run.png</b>.</p>
+
+      <div class="row">
+        <div class="uploader">
+          <label>🐔 فرخة:</label>
+          <input id="chFile" type="file" accept="image/png,image/webp" />
+          <label>إطارات</label><input id="chFrames" type="number" min="1" value="8" />
+          <label>FPS</label><input id="chFps" type="number" min="1" value="10" />
+        </div>
+        <div class="uploader">
+          <label>😼 قط:</label>
+          <input id="catFile" type="file" accept="image/png,image/webp" />
+          <label>إطارات</label><input id="catFrames" type="number" min="1" value="6" />
+          <label>FPS</label><input id="catFps" type="number" min="1" value="12" />
+        </div>
+      </div>
+
+      <p style="margin-top:10px">التحكم: <span class="kbd">مسافة</span>/<span class="kbd">نقرة</span> = قفز — <span class="kbd">P</span> إيقاف — <span class="kbd">R</span> إعادة</p>
       <button class="btn" id="startBtn">ابدأ اللعب</button>
-      <p class="note">تلميح: جمع الذرة يزيد المسافة بينك وبين القط. الاصطدامات تقللها. إذا وصلت المسافة للصفر… القط يمسكك! 😼</p>
+      <p style="opacity:.8">نصيحة: اختر Sprite فيه وضعية <b>ركض جانبي</b>، بمستطيل أفقي واحد مقسوم لإطارات متساوية.</p>
     </div>
   </div>
 
 <script>
 (() => {
-  // ===== إعدادات عامة =====
-  const canvas = document.getElementById('game');
-  const ctx = canvas.getContext('2d');
+  // ===== إعداد القماش
+  const canvas = document.getElementById('game'); const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height; const groundY = H - 82;
+  const G = 1700, JUMP_V = -720, BASE_SPEED = 240;
 
-  const W = canvas.width, H = canvas.height;
-  const groundY = H - 82;
-  const G = 1700;              // الجاذبية (px/s^2)
-  const JUMP_V = -720;         // سرعة القفز (px/s)
-  const BASE_SPEED = 240;      // سرعة العالم الأساسية (px/s)
+  // HUD
+  const scoreEl = document.getElementById('score'), levelNameEl = document.getElementById('levelName');
+  const leadFill = document.getElementById('leadFill'), cornEl = document.getElementById('corn');
+  const overlay = document.getElementById('overlay'), startBtn = document.getElementById('startBtn');
 
-  // حالة اللعبة
-  let running = false, paused = false, gameOver = false;
-  let last = 0;
+  // رفع ملفات
+  const chFile = document.getElementById('chFile'), catFile = document.getElementById('catFile');
+  const chFramesEl = document.getElementById('chFrames'), catFramesEl = document.getElementById('catFrames');
+  const chFpsEl = document.getElementById('chFps'), catFpsEl = document.getElementById('catFps');
 
-  // العالم/المستويات
-  const levels = [
-    {name: "القرية", speedMul: 1.00, color:"#a1e6a1", sky:"#dff4ff"},
-    {name: "المزرعة", speedMul: 1.18, color:"#93db8f", sky:"#d7f0ff"},
-    {name: "المدينة", speedMul: 1.32, color:"#86d38a", sky:"#cfeaff"},
-    {name: "القلعة", speedMul: 1.48, color:"#78ca82", sky:"#c7e3ff"},
-  ];
-  const gates = [0, 800, 2200, 4200]; // أمتار تقريباً لرفع المرحلة
+  // حالة عامة
+  let running=false, paused=false, gameOver=false, last=0;
+  const levels=[{name:"القرية",mul:1,sky:"#dff4ff",grass:"#a1e6a1"},{name:"المزرعة",mul:1.18,sky:"#d7f0ff",grass:"#93db8f"},{name:"المدينة",mul:1.32,sky:"#cfeaff",grass:"#86d38a"},{name:"القلعة",mul:1.48,sky:"#c7e3ff",grass:"#78ca82"}];
+  const gates=[0,800,2200,4200];
+  let world={speed:BASE_SPEED,distance:0,idx:0,bgTick:0};
 
-  let world = {
-    speed: BASE_SPEED,
-    distance: 0, // بالمتر التقريبي (نحو px/240)
-    levelIdx: 0,
-    bgTick: 0
-  };
+  // اللاعب/القط
+  const player={x:180,y:groundY-64,w:72,h:64,vy:0,onGround:true,flap:0};
+  const cat={w:80,h:64,y:groundY-64,lead:140,approach:14};
 
-  // اللاعب (الفرخة)
-  const player = {
-    x: 160, y: groundY - 60, w: 60, h: 60,
-    vy: 0, onGround: true, flapTimer: 0, // جناح سحري (تقليل الجاذبية مؤقتاً)
-    jump() {
-      if (this.onGround) {
-        this.vy = JUMP_V;
-        this.onGround = false;
+  // Sprites (دعم SpriteSheet أفقي بإطارات متساوية)
+  function makeSprite(){
+    return {img:new Image(), ready:false, frames:8, fps:10, frame:0, acc:0,
+      draw(x,y,w,h,dt){
+        if(!this.ready){ // ظل بسيط لحد ما يجهز
+          ctx.fillStyle="#0003"; ctx.fillRect(x+8,y+h-6,w-16,4); return;
+        }
+        const fw = this.img.width/this.frames, fh = this.img.height;
+        this.acc += dt; const step = 1/Math.max(1,this.fps);
+        while(this.acc>=step){ this.acc-=step; this.frame=(this.frame+1)%this.frames; }
+        ctx.drawImage(this.img, fw*this.frame, 0, fw, fh, x, y, w, h);
       }
     }
-  };
+  }
+  const chicken = makeSprite();
+  const catSprite = makeSprite();
 
-  // القط المطارد (يحسب بالمسافة الفعلية كـ "lead")
-  const cat = {
-    w: 70, h: 55, y: groundY - 55,
-    lead: 140, // بكسل بين القط ومركز اللاعب (كلما قل صار أخطر)
-    approachRate: 14 // px/sec (يزيد مع المراحل)
-  };
+  // تحميل افتراضي من مجلد assets إن وجد
+  function tryLoadDefault(){
+    const load = (spr, src) => new Promise(res=>{
+      spr.img.onload=()=>{spr.ready=true; res(true)}; spr.img.onerror=()=>res(false); spr.img.src=src;
+    });
+    Promise.all([
+      load(chicken, "assets/chicken_run.png"),
+      load(catSprite,"assets/cat_run.png")
+    ]).then(()=>{ /* تجاهل لو ما وجد */ });
+  }
+  tryLoadDefault();
 
-  // عوائق وعناصر
-  const obstacles = [];
-  const coins = [];
-  const feathers = [];
-  let spawnObsT = 0, spawnCoinT = 0, spawnFeatT = 5;
+  // رفع يدوي
+  function bindFile(input, spr, framesEl, fpsEl){
+    input.addEventListener('change', ()=>{
+      const f = input.files?.[0]; if(!f) return;
+      const url = URL.createObjectURL(f);
+      spr.img = new Image();
+      spr.img.onload=()=>{ spr.ready=true; spr.frames = +framesEl.value||8; spr.fps = +fpsEl.value||10; spr.frame=0; spr.acc=0; };
+      spr.img.src = url;
+    });
+    framesEl.addEventListener('change',()=>{ spr.frames=+framesEl.value||spr.frames; });
+    fpsEl.addEventListener('change',()=>{ spr.fps=+fpsEl.value||spr.fps; });
+  }
+  bindFile(chFile, chicken, chFramesEl, chFpsEl);
+  bindFile(catFile, catSprite, catFramesEl, catFpsEl);
 
-  // نقاط/عدادات
-  let cornCount = 0;
+  // عناصر اللعبة
+  const obstacles=[], coins=[], feathers=[];
+  let spawnObsT=0, spawnCoinT=0, spawnFeatT=5, corn=0;
 
-  // عناصر HUD
-  const scoreEl = document.getElementById('score');
-  const levelNameEl = document.getElementById('levelName');
-  const leadFill = document.getElementById('leadFill');
-  const cornEl = document.getElementById('corn');
-  const overlay = document.getElementById('overlay');
-  const startBtn = document.getElementById('startBtn');
-
-  // ===== أدوات =====
-  function rand(a,b){return Math.random()*(b-a)+a}
   function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
-  function aabb(ax,ay,aw,ah,bx,by,bw,bh){
-    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+  function aabb(ax,ay,aw,ah,bx,by,bw,bh){return ax<bx+bw&&ax+aw>bx&&ay<by+bh&&ay+ah>by;}
+
+  function reset(){
+    running=true; paused=false; gameOver=false; last=0;
+    world={speed:BASE_SPEED,distance:0,idx:0,bgTick:0};
+    player.x=180; player.y=groundY-64; player.vy=0; player.onGround=true; player.flap=0;
+    cat.lead=140; obstacles.length=0; coins.length=0; feathers.length=0;
+    spawnObsT=0; spawnCoinT=0; spawnFeatT=6; corn=0;
+    overlay.style.display='none'; leadFill.style.width='50%'; levelNameEl.textContent=levels[0].name;
+    scoreEl.textContent='0'; cornEl.textContent='0';
   }
 
-  function resetGame() {
-    running = true; paused = false; gameOver = false; last = 0;
-    world = { speed: BASE_SPEED, distance:0, levelIdx:0, bgTick:0 };
-    player.x = 160; player.y = groundY-60; player.vy = 0; player.onGround = true; player.flapTimer = 0;
-    cat.lead = 140;
-    obstacles.length = 0; coins.length = 0; feathers.length = 0;
-    spawnObsT = 0; spawnCoinT = 0; spawnFeatT = 6;
-    cornCount = 0;
-    overlay.style.display = 'none';
-    leadFill.style.width = '50%';
-    levelNameEl.textContent = levels[0].name;
-    scoreEl.textContent = '0'; cornEl.textContent = '0';
-  }
-
-  function gameOverScreen(msg="انتهت اللعبة! 🐱‍👤") {
-    running = false; gameOver = true;
+  function gameOverScreen(msg){
+    running=false; gameOver=true;
     overlay.innerHTML = `
       <div class="card">
         <h1>${msg}</h1>
-        <p>المسافة المقطوعة: <b>${Math.floor(world.distance)}</b> متر • الذرة: <b>${cornCount}</b></p>
-        <button class="btn" id="restartBtn">إعادة اللعب</button>
-        <p class="note">نصيحة: حافظ على قفزاتك في توقيتٍ دقيق، والْتقط الريشة لتخفيف الجاذبية مؤقتًا.</p>
+        <p>المسافة: <b>${Math.floor(world.distance)}</b>م • الذرة: <b>${corn}</b></p>
+        <button class="btn" id="restartBtn">إعادة</button>
+        <p style="opacity:.8">ارفع Sprites أفضل لو احتجت — الإطارات = عدد صور الركض داخل الملف الأفقي.</p>
       </div>`;
-    overlay.style.display = 'flex';
-    document.getElementById('restartBtn').onclick = () => resetGame();
+    overlay.style.display='flex';
+    document.getElementById('restartBtn').onclick=reset;
   }
 
-  // ===== رسم الشخصيات بشكل كرتوني بسيط =====
-  function drawChicken(x,y,w,h){
-    // جسم
-    ctx.fillStyle = "#fffaf0";
-    roundRect(x,y,w,h,14,true,false);
-
-    // جناح تزييني
-    ctx.fillStyle = "#ffe6a7";
-    roundRect(x+10,y+18,w*0.55,h*0.42,10,true,false);
-
-    // عين
-    ctx.fillStyle="#222";
-    ctx.beginPath(); ctx.arc(x+w-18,y+16,6,0,Math.PI*2); ctx.fill();
-
-    // منقار
-    ctx.fillStyle="#ff9f1c";
-    ctx.beginPath();
-    ctx.moveTo(x+w-8,y+h*0.45);
-    ctx.lineTo(x+w+12,y+h*0.5);
-    ctx.lineTo(x+w-8,y+h*0.55);
-    ctx.closePath(); ctx.fill();
-
-    // أرجل
-    ctx.strokeStyle="#ff9f1c"; ctx.lineWidth=4;
-    ctx.beginPath(); ctx.moveTo(x+14,y+h); ctx.lineTo(x+14,y+h+10); ctx.moveTo(x+34,y+h); ctx.lineTo(x+34,y+h+10); ctx.stroke();
-
-    // تأثير "جناح سحري" عند التفعيل
-    if (player.flapTimer>0){
-      ctx.globalAlpha=0.55;
-      ctx.fillStyle="#b4f5ff";
-      ctx.beginPath();
-      ctx.ellipse(x+w*0.35,y+h*0.2,w*0.4,h*0.3,0,0,Math.PI*2);
-      ctx.fill();
-      ctx.globalAlpha=1;
-    }
-  }
-
-  function drawCat(x,y,w,h){
-    // جسم
-    ctx.fillStyle="#3a3a45";
-    roundRect(x,y,w,h,10,true,false);
-    // أذنان
-    ctx.fillStyle="#3a3a45";
-    ctx.beginPath(); ctx.moveTo(x+10,y); ctx.lineTo(x+24,y-16); ctx.lineTo(x+30,y); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(x+w-10,y); ctx.lineTo(x+w-24,y-16); ctx.lineTo(x+w-30,y); ctx.closePath(); ctx.fill();
-    // عينان
-    ctx.fillStyle="#ffd166";
-    ctx.beginPath(); ctx.arc(x+20,y+16,5,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(x+w-20,y+16,5,0,Math.PI*2); ctx.fill();
-    // فم
-    ctx.strokeStyle="#fff"; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(x+w/2-8,y+h-16); ctx.quadraticCurveTo(x+w/2,y+h-10,x+w/2+8,y+h-16); ctx.stroke();
-  }
-
-  function roundRect(x,y,w,h,r,fill,stroke){
-    if (w<2*r) r=w/2; if (h<2*r) r=h/2;
-    ctx.beginPath();
-    ctx.moveTo(x+r,y);
-    ctx.arcTo(x+w,y,  x+w,y+h, r);
-    ctx.arcTo(x+w,y+h,x,  y+h,  r);
-    ctx.arcTo(x,  y+h,x,  y,    r);
-    ctx.arcTo(x,  y,  x+w,y,    r);
-    ctx.closePath();
-    if(fill) ctx.fill();
-    if(stroke) ctx.stroke();
-  }
-
-  // ===== تحديث المستوى حسب المسافة =====
   function updateLevel(){
-    const d = world.distance;
-    let idx = 0;
-    if (d >= gates[3]) idx = 3;
-    else if (d >= gates[2]) idx = 2;
-    else if (d >= gates[1]) idx = 1;
-    if (idx !== world.levelIdx){
-      world.levelIdx = idx;
-      levelNameEl.textContent = levels[idx].name;
-    }
-    // سرعة العالم ووتيرة اقتراب القط تزداد تدريجياً
-    const lv = levels[world.levelIdx];
-    world.speed = BASE_SPEED * lv.speedMul;
-    cat.approachRate = 14 * lv.speedMul;
+    const d=world.distance;
+    let idx=(d>=gates[3])?3:(d>=gates[2])?2:(d>=gates[1])?1:0;
+    if(idx!==world.idx){world.idx=idx; levelNameEl.textContent=levels[idx].name;}
+    world.speed = BASE_SPEED*levels[world.idx].mul;
+    cat.approach = 14*levels[world.idx].mul;
   }
 
-  // ===== توليد عناصر =====
   function spawnObstacle(){
-    // ثلاثة أنماط: صندوق، شوكة، بركة
-    const type = Math.random();
-    let w=40,h=40,y=groundY-40, color="#6b4f3a";
-    if (type < 0.33){ // صندوق
-      w = 48; h = 46; y=groundY-h; color="#7b523c";
-    } else if (type < 0.66){ // شوكة
-      w = 40; h = 46; y=groundY-h; color="#9b1c1c";
-    } else { // بركة
-      w = 78; h = 20; y=groundY-h+6; color="#2aa1ff";
-    }
-    obstacles.push({x: W+40, y, w, h, color, type: (type<0.33?'box':type<0.66?'spike':'pool')});
+    const t=Math.random(); let w=46,h=46,y=groundY-46,color="#7b523c",type='box';
+    if(t<.33){type='box'; w=52; h=48; y=groundY-h; color="#7b523c";}
+    else if(t<.66){type='spike'; w=42; h=50; y=groundY-h; color="#9b1c1c";}
+    else{type='pool'; w=84; h=22; y=groundY-h+6; color="#2aa1ff";}
+    obstacles.push({x:W+40,y,w,h,color,type});
   }
+  function spawnCoin(){ const y=groundY-(Math.random()<.5?120:70); coins.push({x:W+30,y,r:10}); }
+  function spawnFeather(){ feathers.push({x:W+40,y:groundY-140,r:12,time:2.2}); }
 
-  function spawnCoin(){
-    const y = groundY - (Math.random()<0.5? 120 : 70);
-    coins.push({x: W+30, y, r:10, taken:false, val:1});
-  }
-
-  function spawnFeather(){
-    const y = groundY - 140;
-    feathers.push({x: W+40, y, r:12, taken:false, time:2.2}); // 2.2 ثانية طيران خفيف
-  }
-
-  // ===== تحديث ورسم الخلفية =====
-  function drawBackground(dt){
-    const lv = levels[world.levelIdx];
-    // سماء
-    const grad = ctx.createLinearGradient(0,0,0,H*0.7);
-    grad.addColorStop(0, "#8fd3ff");
-    grad.addColorStop(1, lv.sky);
-    ctx.fillStyle = grad;
-    ctx.fillRect(0,0,W,H);
-
-    // تلال متحركة بسيطة
-    world.bgTick += dt * world.speed * 0.25;
-    for (let i=0;i<3;i++){
-      const yBase = groundY - 80 - i*24;
-      ctx.fillStyle = `rgba(60, ${120+i*30}, 80, ${0.18+i*0.07})`;
-      ctx.beginPath();
-      const offset = (world.bgTick*(0.4+i*0.25)) % (W);
-      ctx.moveTo(0, groundY);
-      for (let x=-W;x<=W*2;x+=40){
-        const X = x - offset;
-        const Y = yBase + Math.sin((x+i*50)*0.01)*20;
-        ctx.lineTo(X,Y);
-      }
+  function bg(dt){
+    const lv=levels[world.idx]; const grad=ctx.createLinearGradient(0,0,0,H*.7);
+    grad.addColorStop(0,"#8fd3ff"); grad.addColorStop(1,lv.sky); ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
+    world.bgTick+=dt*world.speed*.25;
+    for(let i=0;i<3;i++){
+      const yb=groundY-80-i*24; ctx.fillStyle=`rgba(60,${120+i*30},80,${.18+i*.07})`;
+      ctx.beginPath(); const off=(world.bgTick*(.4+i*.25))%W; ctx.moveTo(0,groundY);
+      for(let x=-W;x<=W*2;x+=40){ const X=x-off; const Y=yb+Math.sin((x+i*50)*.01)*20; ctx.lineTo(X,Y);}
       ctx.lineTo(W,groundY); ctx.closePath(); ctx.fill();
     }
-
-    // أرضية
-    ctx.fillStyle = lv.color;
-    ctx.fillRect(0,groundY,W,H-groundY);
-    // خطوط عشب بسيطة
-    ctx.strokeStyle="rgba(0,0,0,.08)"; ctx.lineWidth=2;
-    for(let i=0;i<W;i+=24){
-      ctx.beginPath(); ctx.moveTo((i - (world.bgTick*1.2)%24), groundY);
-      ctx.lineTo((i - (world.bgTick*1.2)%24)+8, groundY-6); ctx.stroke();
-    }
+    ctx.fillStyle=lv.grass; ctx.fillRect(0,groundY,W,H-groundY);
   }
 
-  // ===== الحلقة الرئيسية =====
   function update(dt){
-    if (!running || paused) return;
+    if(!running||paused) return;
 
-    // فيزياء اللاعب
-    const effG = player.flapTimer>0 ? G * 0.55 : G;
-    player.vy += effG * dt;
-    player.y += player.vy * dt;
-    if (player.y + player.h >= groundY){
-      player.y = groundY - player.h; player.vy = 0; player.onGround = true;
-    }
-    if (player.flapTimer>0){
-      player.flapTimer -= dt;
-      if (player.flapTimer < 0) player.flapTimer = 0;
-    }
+    // فيزياء
+    const effG = player.flap>0 ? G*.55 : G;
+    player.vy += effG*dt; player.y += player.vy*dt;
+    if(player.y+player.h>=groundY){player.y=groundY-player.h; player.vy=0; player.onGround=true;}
+    if(player.flap>0){player.flap-=dt; if(player.flap<0) player.flap=0;}
 
-    // تقدم العالم
     updateLevel();
-    const vx = world.speed * dt;
-    world.distance += (world.speed * dt) / 2.4 * 0.01 * 100; // تقريب للتحويل إلى أمتار
-    scoreEl.textContent = Math.floor(world.distance);
+    world.distance += (world.speed*dt)/2.4*0.01*100; scoreEl.textContent = Math.floor(world.distance);
 
-    // توليد عناصر
-    spawnObsT -= dt;
-    spawnCoinT -= dt;
-    spawnFeatT -= dt;
+    // توليد
+    spawnObsT-=dt; spawnCoinT-=dt; spawnFeatT-=dt;
+    if(spawnObsT<=0){ spawnObstacle(); const baseGap= Math.max(.6, 1.05-world.idx*.12); spawnObsT = baseGap + Math.random()*.8; }
+    if(spawnCoinT<=0){ spawnCoin(); spawnCoinT = 1.2 + Math.random()*.8; }
+    if(spawnFeatT<=0){ if(Math.random()<.65) spawnFeather(); spawnFeatT = 7 + Math.random()*4; }
 
-    if (spawnObsT <= 0){
-      spawnObstacle();
-      const baseGap = clamp(1.05 - world.levelIdx*0.12, 0.6, 1.05);
-      spawnObsT = rand(baseGap, baseGap+0.8);
-    }
-    if (spawnCoinT <= 0){
-      spawnCoin();
-      spawnCoinT = rand(1.2, 2.0);
-    }
-    if (spawnFeatT <= 0){
-      if (Math.random() < 0.65) spawnFeather();
-      spawnFeatT = rand(7, 11);
-    }
-
-    // تحريك ورسم
-    drawBackground(dt);
+    // رسم
+    bg(dt);
 
     // عوائق
-    for (let i=obstacles.length-1;i>=0;i--){
-      const o = obstacles[i];
-      o.x -= world.speed * dt;
-      // رسم
-      ctx.fillStyle = o.color;
-      if (o.type==='spike'){
-        // مثلث شوك
-        ctx.beginPath();
-        ctx.moveTo(o.x,o.y+o.h); ctx.lineTo(o.x+o.w/2,o.y); ctx.lineTo(o.x+o.w,o.y+o.h); ctx.closePath(); ctx.fill();
-      } else {
-        roundRect(o.x,o.y,o.w,o.h,8,true,false);
-        if (o.type==='pool'){
-          ctx.fillStyle = "rgba(255,255,255,.2)";
-          ctx.fillRect(o.x+6,o.y+4,o.w-12,4);
-        }
-      }
-      // تصادم
-      if (aabb(player.x,player.y,player.w,player.h,o.x,o.y,o.w,o.h)){
-        // فقدان مسافة حاد وليس موت فوري
-        cat.lead -= 90;
-        obstacles.splice(i,1);
-      }
-      if (o.x+o.w < -20) obstacles.splice(i,1);
+    for(let i=obstacles.length-1;i>=0;i--){
+      const o=obstacles[i]; o.x -= world.speed*dt;
+      if(o.type==='spike'){ ctx.fillStyle=o.color; ctx.beginPath(); ctx.moveTo(o.x,o.y+o.h); ctx.lineTo(o.x+o.w/2,o.y); ctx.lineTo(o.x+o.w,o.y+o.h); ctx.closePath(); ctx.fill();}
+      else { ctx.fillStyle=o.color; roundRect(o.x,o.y,o.w,o.h,8,true,false); if(o.type==='pool'){ctx.fillStyle="rgba(255,255,255,.2)"; ctx.fillRect(o.x+6,o.y+4,o.w-12,4);} }
+      if(aabb(player.x,player.y,player.w,player.h,o.x,o.y,o.w,o.h)){ cat.lead -= 90; obstacles.splice(i,1); }
+      if(o.x+o.w<-20) obstacles.splice(i,1);
+    }
+    // ذرة
+    for(let i=coins.length-1;i>=0;i--){
+      const c=coins[i]; c.x -= world.speed*dt;
+      ctx.fillStyle="#ffd166"; ctx.beginPath(); ctx.ellipse(c.x,c.y,11.5,10,0,0,Math.PI*2); ctx.fill(); ctx.strokeStyle="rgba(255,255,255,.6)"; ctx.lineWidth=2; ctx.stroke();
+      if(aabb(player.x,player.y,player.w,player.h,c.x-10,c.y-10,20,20)){ corn++; cat.lead += 36; coins.splice(i,1); }
+      if(c.x<-30) coins.splice(i,1);
+    }
+    cornEl.textContent=corn;
+
+    // ريشة
+    for(let i=feathers.length-1;i>=0;i--){
+      const f=feathers[i]; f.x -= world.speed*dt;
+      ctx.save(); ctx.translate(f.x,f.y); ctx.rotate(Math.sin((performance.now()/400)+i)*.2);
+      ctx.fillStyle="#b4f5ff"; ctx.beginPath(); ctx.moveTo(0,0); ctx.quadraticCurveTo(22,-8,28,0); ctx.quadraticCurveTo(22,12,0,10); ctx.closePath(); ctx.fill(); ctx.restore();
+      if(aabb(player.x,player.y,player.w,player.h,f.x-16,f.y-10,32,20)){ player.flap=f.time; cat.lead+=24; feathers.splice(i,1); }
+      if(f.x<-40) feathers.splice(i,1);
     }
 
-    // عملات الذرة
-    for (let i=coins.length-1;i>=0;i--){
-      const c = coins[i];
-      c.x -= world.speed * dt;
-      // رسم
-      ctx.fillStyle="#ffd166";
-      ctx.beginPath(); ctx.ellipse(c.x,c.y, c.r*1.15, c.r, 0, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle="rgba(255,255,255,.6)"; ctx.lineWidth=2; ctx.stroke();
-      // تصادم
-      if (!c.taken && aabb(player.x,player.y,player.w,player.h, c.x-c.r,c.y-c.r, c.r*2,c.r*2)){
-        c.taken = true; cornCount += c.val; cat.lead += 36;
-        coins.splice(i,1);
-      }
-      if (c.x < -30) coins.splice(i,1);
-    }
-    cornEl.textContent = cornCount;
-
-    // ريشة (جناح سحري)
-    for (let i=feathers.length-1;i>=0;i--){
-      const f = feathers[i];
-      f.x -= world.speed * dt;
-      // رسم
-      ctx.save();
-      ctx.translate(f.x, f.y);
-      ctx.rotate(Math.sin((performance.now()/400)+i)*0.2);
-      ctx.fillStyle="#b4f5ff";
-      ctx.beginPath();
-      ctx.moveTo(0,0); ctx.quadraticCurveTo(22,-8, 28,0); ctx.quadraticCurveTo(22,12, 0,10); ctx.closePath(); ctx.fill();
-      ctx.restore();
-      // تصادم
-      if (!f.taken && aabb(player.x,player.y,player.w,player.h, f.x-16,f.y-10, 32,20)){
-        f.taken = true; player.flapTimer = f.time; cat.lead += 24;
-        feathers.splice(i,1);
-      }
-      if (f.x < -40) feathers.splice(i,1);
-    }
-
-    // القط يقترب تدريجياً
-    cat.lead -= cat.approachRate * dt;
-    cat.lead = clamp(cat.lead, 0, 260);
-
-    // رسم اللاعب والقط
-    drawChicken(player.x, player.y, player.w, player.h);
+    // رسم الفرخة والقط من Sprites
+    chicken.draw(player.x, player.y, player.w, player.h, dt);
     const catX = player.x - cat.lead - (cat.w - player.w)/2;
-    drawCat(catX, cat.y, cat.w, cat.h);
+    catSprite.draw(catX, cat.y, cat.w, cat.h, dt);
 
-    // شريط المسافة
-    const percent = (cat.lead/260)*100;
-    leadFill.style.width = percent.toFixed(1) + '%';
-    leadFill.style.background = (percent<25) ? 'linear-gradient(90deg, var(--danger), #ff8d6c)' :
-                                 (percent<50) ? 'linear-gradient(90deg, #ffb020, #ffd166)' :
-                                                'linear-gradient(90deg, var(--ok), var(--accent))';
+    // اقتراب القط + شريط
+    cat.lead -= cat.approach*dt; cat.lead = clamp(cat.lead,0,260);
+    const p = (cat.lead/260)*100; leadFill.style.width=p.toFixed(1)+'%';
+    leadFill.style.background = (p<25)?'linear-gradient(90deg,var(--danger),#ff8d6c)':(p<50)?'linear-gradient(90deg,#ffb020,#ffd166)':'linear-gradient(90deg,var(--ok),var(--accent))';
 
-    // التحقق من الإمساك
-    if (cat.lead <= 0){
-      gameOverScreen("أمسكك القط! 😿");
-    }
+    if(cat.lead<=0) gameOverScreen("أمسكك القط! 😿");
   }
 
-  function loop(ts){
-    if (!running){ last = ts; requestAnimationFrame(loop); return; }
-    const dt = Math.min(0.032, (ts - last)/1000 || 0); // سقف 32ms
-    last = ts;
-    if (!paused) update(dt);
-    requestAnimationFrame(loop);
-  }
+  function loop(ts){ if(!running){ last=ts; requestAnimationFrame(loop); return; } const dt=Math.min(.032,(ts-last)/1000||0); last=ts; if(!paused) update(dt); requestAnimationFrame(loop); }
+  function jump(){ if(!running||paused) return; if(player.onGround){player.vy=JUMP_V; player.onGround=false;} }
 
-  // ===== إدخال المستخدم =====
-  function tryJump(){
-    if (!running || paused) return;
-    player.jump();
-  }
-
-  window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' || e.code === 'ArrowUp'){ e.preventDefault(); tryJump(); }
-    else if (e.code === 'KeyP'){ paused = !paused; }
-    else if (e.code === 'KeyR'){ resetGame(); }
+  window.addEventListener('keydown',e=>{
+    if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault(); jump();}
+    else if(e.code==='KeyP'){paused=!paused;}
+    else if(e.code==='KeyR'){reset();}
   }, {passive:false});
-
-  // لمس/نقر للقفز
-  ['pointerdown','touchstart'].forEach(ev => {
-    canvas.addEventListener(ev, () => {
-      if (!running && !gameOver) return;
-      tryJump();
-    }, {passive:true});
-  });
-
-  // زر البداية
-  startBtn.addEventListener('click', resetGame);
-
-  // ابدأ الحلقة
+  canvas.addEventListener('pointerdown',()=>jump(),{passive:true});
+  startBtn.addEventListener('click', reset);
+  function roundRect(x,y,w,h,r,fill,stroke){ if(w<2*r)r=w/2; if(h<2*r)r=h/2; ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); if(fill)ctx.fill(); if(stroke)ctx.stroke(); }
   requestAnimationFrame(loop);
 })();
 </script>
