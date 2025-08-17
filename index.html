@@ -1,31 +1,26 @@
-<!DOCTYPE html><html lang="ar" dir="rtl">
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>بطاقات الدول — أوفلاين + تايلوِند + كاش شامل</title>
+  <title>بطاقات الدول — أونلاين/أوفلاين + كاش + ألوان من العلم</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root { color-scheme: dark; }
     body{ background:#0b1220; }
-    /*بطاقة مطوية/مفتوحة*/
     .card-base{ position:relative; border-radius:28px; overflow:hidden; transition: transform .22s ease, box-shadow .22s ease, height .28s ease; border:1px solid rgb(30 41 59); }
     .card-base:hover{ transform:scale(1.03); box-shadow:0 16px 44px rgba(0,0,0,.48); z-index:10; }
     .card-base[data-expanded="0"]{ height:120px; }
     .card-base[data-expanded="1"]{ height:270px; }
     .detail{ transition: opacity .25s ease, transform .25s ease; }
     .card-base[data-expanded="0"] .detail{ opacity:0; transform:translateY(10px); pointer-events:none; }
-    .card-base[data-expanded="1"] .detail{ opacity:1; transform:translateY(0); }
     .corner{ position:absolute; width:120px; height:120px; background:rgba(0,0,0,.25); border-radius:50%; }
     .corner.tl{ top:-60px; right:-60px; }
     .corner.br{ bottom:-60px; left:-60px; }
-    /* شريط خبر عاجل */
     @keyframes ticker{ 0%{ transform: translateX(0) } 100%{ transform: translateX(-50%) } }
     .news-bar{ position:absolute; left:0; right:0; bottom:0; background:rgba(0,0,0,.25); backdrop-filter:blur(4px); border-top:1px dashed rgba(255,255,255,.2); }
     .marquee-track{ white-space:nowrap; display:inline-block; padding-left:100%; animation: ticker 18s linear infinite; }
     .news-bar:hover .marquee-track{ animation-play-state: paused; }
-    /* سكيليتون */
-    .skeleton{ background:linear-gradient(90deg,#111827 25%,#1f2937 37%,#111827 63%); background-size:400% 100%; animation:shimmer 1.2s infinite; }
-    @keyframes shimmer{ 0%{ background-position:100% 0 } 100%{ background-position:-100% 0 } }
   </style>
 </head>
 <body class="min-h-screen text-slate-100">
@@ -33,49 +28,92 @@
     <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <div class="flex items-center gap-3">
         <span class="text-2xl">🌍</span>
-        <h1 class="text-xl md:text-2xl font-bold">بطاقات الدول — أوفلاين + تايلوِند + كاش</h1>
+        <h1 class="text-xl md:text-2xl font-bold">بطاقات الدول — أونلاين/أوفلاين + كاش + ألوان من العلم</h1>
       </div>
       <div class="flex flex-col md:flex-row gap-2 md:items-center w-full md:w-auto">
         <input id="search" type="text" placeholder="ابحث: دولة / عملة…" class="w-full md:w-96 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-        <button id="toggleOnline" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 transition font-medium">تشغيل المزايا أونلاين</button>
+        <button id="toggleOnline" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 transition font-medium">إيقاف المزايا أونلاين</button>
         <button id="cacheCountries" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 transition font-medium">حفظ كل الدول في الكاش</button>
       </div>
     </div>
-  </header>  <main class="max-w-7xl mx-auto p-4">
-    <div id="hint" class="mb-3 text-slate-300 text-sm">نسخة أوفلاين تظهر فورًا. تقدر تفعّل الإنترنت لجلب الطقس/الأسعار/الأخبار وحفظ كل الدول في الكاش للعمل لاحقًا بدون اتصال.</div>
+  </header>
+
+  <main class="max-w-7xl mx-auto p-4">
+    <div id="hint" class="mb-3 text-slate-300 text-sm">
+      أونلاين مفعّل افتراضيًا. اضغط على أي بطاقة لفتحها وجلب الطقس/الأسعار/الأخبار. يعمل أوفلاين أيضًا.
+    </div>
     <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
-  </main>  <script>
-    // ===================== إعداد عام =====================
+  </main>
+
+  <script>
+    // ===== عناصر عامة
     const gridEl = document.getElementById('grid');
     const searchEl = document.getElementById('search');
     const toggleOnlineBtn = document.getElementById('toggleOnline');
     const cacheCountriesBtn = document.getElementById('cacheCountries');
     const hintEl = document.getElementById('hint');
 
-    let ENABLE_ONLINE = false;
+    // شغّال افتراضيًا
+    let ENABLE_ONLINE = true;
 
-    // ===================== أدوات لونية وخلفية =====================
+    // ===== ألوان هادئة افتراضية
     function hashHue(str){ let h=0; for(let i=0;i<(str||'').length;i++){ h=(h*31 + str.charCodeAt(i))>>>0; } return h%360; }
-    function themeFromCode(code){ const h=hashHue(code||'XX'); return { from:`hsl(${h} 80% 45%)`, to:`hsl(${(h+24)%360} 85% 55%)` }; }
-    function gradient(theme, night=false){ const from = night? '#0f172a' : theme.from; const to = night? '#0b1220' : theme.to; return `linear-gradient(180deg, ${from} 0%, ${to} 68%, rgba(2,6,23,.95) 120%)`; }
+    function themeFromCode(code){ const h=hashHue(code||'XX'); return { from:`hsl(${h} 70% 45%)`, to:`hsl(${(h+18)%360} 75% 58%)` }; }
+    function gradient(theme, night=false){
+      const from = night? '#0f172a' : theme.from;
+      const to   = night? '#0b1220' : theme.to;
+      return `linear-gradient(135deg, ${from} 0%, ${to} 70%)`;
+    }
 
-    // ===================== كاش + وقت صلاحية =====================
-    const TTL = { countries: 365*24*60*60*1000, weather: 30*60*1000, fx: 12*60*60*1000, news: 30*60*1000 };
+    // ===== كاش
+    const TTL = { countries: 365*24*60*60*1000, weather: 30*60*1000, fx: 12*60*60*1000, news: 30*60*1000, theme: 365*24*60*60*1000 };
     function setCache(key, value){ try{ localStorage.setItem(key, JSON.stringify({ t: Date.now(), v: value })); }catch{} }
     function getCache(key, ttl){ try{ const s = localStorage.getItem(key); if(!s) return null; const {t,v} = JSON.parse(s); if(ttl && Date.now()-t>ttl) return null; return v; }catch{ return null } }
 
-    // ===================== بيانات أوفلاين أساسية (50 دولة خفيفة) =====================
+    // ===== أوفلاين 50 دولة (مختصرة)
     const OFFLINE50 = [
-      ['DE','ألمانيا','Europe/Berlin',52.52,13.405,'EUR','de','أوروبا'],['SA','السعودية','Asia/Riyadh',24.7136,46.6753,'SAR','sa','آسيا'],['EG','مصر','Africa/Cairo',30.0444,31.2357,'EGP','eg','أفريقيا'],['TR','تركيا','Europe/Istanbul',41.0151,28.9795,'TRY','tr','آسيا'],['AE','الإمارات','Asia/Dubai',25.2048,55.2708,'AED','ae','آسيا'],['QA','قطر','Asia/Qatar',25.2854,51.5310,'QAR','qa','آسيا'],['KW','الكويت','Asia/Kuwait',29.3759,47.9774,'KWD','kw','آسيا'],['OM','عُمان','Asia/Muscat',23.5880,58.3829,'OMR','om','آسيا'],['BH','البحرين','Asia/Bahrain',26.2235,50.5876,'BHD','bh','آسيا'],['JO','الأردن','Asia/Amman',31.9539,35.9106,'JOD','jo','آسيا'],
-      ['LB','لبنان','Asia/Beirut',33.8938,35.5018,'LBP','lb','آسيا'],['IQ','العراق','Asia/Baghdad',33.3152,44.3661,'IQD','iq','آسيا'],['YE','اليمن','Asia/Aden',15.3694,44.1910,'YER','ye','آسيا'],['SY','سوريا','Asia/Damascus',33.5138,36.2765,'SYP','sy','آسيا'],['IR','إيران','Asia/Tehran',35.6892,51.3890,'IRR','ir','آسيا'],['IL','إسرائيل','Asia/Jerusalem',31.7683,35.2137,'ILS','il','آسيا'],['PS','فلسطين','Asia/Gaza',31.5,34.4667,'ILS','ps','آسيا'],['EG','مصر','Africa/Cairo',30.0444,31.2357,'EGP','eg','أفريقيا'],['MA','المغرب','Africa/Casablanca',33.5731,-7.5898,'MAD','ma','أفريقيا'],['DZ','الجزائر','Africa/Algiers',36.7538,3.0588,'DZD','dz','أفريقيا'],
-      ['TN','تونس','Africa/Tunis',36.8065,10.1815,'TND','tn','أفريقيا'],['LY','ليبيا','Africa/Tripoli',32.8872,13.1913,'LYD','ly','أفريقيا'],['SD','السودان','Africa/Khartoum',15.5007,32.5599,'SDG','sd','أفريقيا'],['ET','إثيوبيا','Africa/Addis_Ababa',8.9806,38.7578,'ETB','et','أفريقيا'],['NG','نيجيريا','Africa/Lagos',6.5244,3.3792,'NGN','ng','أفريقيا'],['KE','كينيا','Africa/Nairobi',-1.2864,36.8172,'KES','ke','أفريقيا'],['ZA','جنوب أفريقيا','Africa/Johannesburg',-26.2041,28.0473,'ZAR','za','أفريقيا'],['GH','غانا','Africa/Accra',5.6037,-0.1870,'GHS','gh','أفريقيا'],['CM','الكاميرون','Africa/Douala',4.0511,9.7679,'XAF','cm','أفريقيا'],['SN','السنغال','Africa/Dakar',14.7167,-17.4677,'XOF','sn','أفريقيا'],
-      ['US','الولايات المتحدة','America/New_York',40.7128,-74.0060,'USD','us','أمريكا'],['CA','كندا','America/Toronto',43.6511,-79.3470,'CAD','ca','أمريكا'],['MX','المكسيك','America/Mexico_City',19.4326,-99.1332,'MXN','mx','أمريكا'],['BR','البرازيل','America/Sao_Paulo',-23.5505,-46.6333,'BRL','br','أمريكا'],['AR','الأرجنتين','America/Argentina/Buenos_Aires',-34.6037,-58.3816,'ARS','ar','أمريكا'],['CL','تشيلي','America/Santiago',-33.4489,-70.6693,'CLP','cl','أمريكا'],['CO','كولومبيا','America/Bogota',4.7110,-74.0721,'COP','co','أمريكا'],['PE','بيرو','America/Lima',-12.0464,-77.0428,'PEN','pe','أمريكا'],['VE','فنزويلا','America/Caracas',10.4806,-66.9036,'VES','ve','أمريكا'],['UY','أوروغواي','America/Montevideo',-34.9011,-56.1645,'UYU','uy','أمريكا'],
-      ['GB','بريطانيا','Europe/London',51.5072,-0.1276,'GBP','gb','أوروبا'],['FR','فرنسا','Europe/Paris',48.8566,2.3522,'EUR','fr','أوروبا'],['IT','إيطاليا','Europe/Rome',41.9028,12.4964,'EUR','it','أوروبا'],['ES','إسبانيا','Europe/Madrid',40.4168,-3.7038,'EUR','es','أوروبا'],['PT','البرتغال','Europe/Lisbon',38.7223,-9.1393,'EUR','pt','أوروبا'],['DE','ألمانيا','Europe/Berlin',52.52,13.405,'EUR','de','أوروبا'],['NL','هولندا','Europe/Amsterdam',52.3676,4.9041,'EUR','nl','أوروبا'],['BE','بلجيكا','Europe/Brussels',50.8503,4.3517,'EUR','be','أوروبا'],['CH','سويسرا','Europe/Zurich',47.3769,8.5417,'CHF','ch','أوروبا'],['SE','السويد','Europe/Stockholm',59.3293,18.0686,'SEK','se','أوروبا']
+      ['BD','Bangladesh','UTC+06:00',23.8103,90.4125,'BDT','bd','Asia'],
+      ['BB','Barbados','UTC-04:00',13.0975,-59.6167,'BBD','bb','Americas'],
+      ['SA','Saudi Arabia','Asia/Riyadh',24.7136,46.6753,'SAR','sa','Asia'],
+      ['EG','Egypt','Africa/Cairo',30.0444,31.2357,'EGP','eg','Africa'],
+      ['TR','Türkiye','Europe/Istanbul',41.0151,28.9795,'TRY','tr','Asia'],
+      ['AE','United Arab Emirates','Asia/Dubai',25.2048,55.2708,'AED','ae','Asia'],
+      ['QA','Qatar','Asia/Qatar',25.2854,51.5310,'QAR','qa','Asia'],
+      ['KW','Kuwait','Asia/Kuwait',29.3759,47.9774,'KWD','kw','Asia'],
+      ['OM','Oman','Asia/Muscat',23.5880,58.3829,'OMR','om','Asia'],
+      ['BH','Bahrain','Asia/Bahrain',26.2235,50.5876,'BHD','bh','Asia'],
+      ['JO','Jordan','Asia/Amman',31.9539,35.9106,'JOD','jo','Asia'],
+      ['LB','Lebanon','Asia/Beirut',33.8938,35.5018,'LBP','lb','Asia'],
+      ['IQ','Iraq','Asia/Baghdad',33.3152,44.3661,'IQD','iq','Asia'],
+      ['YE','Yemen','Asia/Aden',15.3694,44.1910,'YER','ye','Asia'],
+      ['SY','Syria','Asia/Damascus',33.5138,36.2765,'SYP','sy','Asia'],
+      ['IR','Iran','Asia/Tehran',35.6892,51.3890,'IRR','ir','Asia'],
+      ['DE','Germany','Europe/Berlin',52.52,13.405,'EUR','de','Europe'],
+      ['FR','France','Europe/Paris',48.8566,2.3522,'EUR','fr','Europe'],
+      ['GB','United Kingdom','Europe/London',51.5072,-0.1276,'GBP','gb','Europe'],
+      ['ES','Spain','Europe/Madrid',40.4168,-3.7038,'EUR','es','Europe'],
+      ['IT','Italy','Europe/Rome',41.9028,12.4964,'EUR','it','Europe'],
+      ['PT','Portugal','Europe/Lisbon',38.7223,-9.1393,'EUR','pt','Europe'],
+      ['US','United States','America/New_York',40.7128,-74.0060,'USD','us','Americas'],
+      ['CA','Canada','America/Toronto',43.6511,-79.3470,'CAD','ca','Americas'],
+      ['MX','Mexico','America/Mexico_City',19.4326,-99.1332,'MXN','mx','Americas'],
+      ['BR','Brazil','America/Sao_Paulo',-23.5505,-46.6333,'BRL','br','Americas'],
+      ['AR','Argentina','America/Argentina/Buenos_Aires',-34.6037,-58.3816,'ARS','ar','Americas'],
+      ['CL','Chile','America/Santiago',-33.4489,-70.6693,'CLP','cl','Americas'],
+      ['CO','Colombia','America/Bogota',4.7110,-74.0721,'COP','co','Americas'],
+      ['PE','Peru','America/Lima',-12.0464,-77.0428,'PEN','pe','Americas'],
+      ['RU','Russia','Europe/Moscow',55.7558,37.6173,'RUB','ru','Europe'],
+      ['CN','China','Asia/Shanghai',31.2304,121.4737,'CNY','cn','Asia'],
+      ['JP','Japan','Asia/Tokyo',35.6762,139.6503,'JPY','jp','Asia'],
+      ['KR','South Korea','Asia/Seoul',37.5665,126.9780,'KRW','kr','Asia'],
+      ['IN','India','Asia/Kolkata',28.6139,77.2090,'INR','in','Asia'],
+      ['AU','Australia','Australia/Sydney',-33.8688,151.2093,'AUD','au','Oceania'],
+      ['NZ','New Zealand','Pacific/Auckland',-36.8485,174.7633,'NZD','nz','Oceania']
     ].map(([code,name,tz,lat,lon,ccy,flag,region])=>({ code,name,tz,lat,lon,currency:{code:ccy},flag,region,theme:themeFromCode(code) }));
 
     let COUNTRIES = [];
 
-    // ===================== طقس (SVG مبسط) =====================
+    // ===== أيقونات الطقس
     function iconSVGByWeather(code, is_day){
       const sun = `<circle cx='50' cy='50' r='24' fill='#facc15'/>`;
       const moon = `<path d='M64 50a22 22 0 1 1-28-28a24 24 0 1 0 28 28z' fill='#e5e7eb'/>`;
@@ -95,7 +133,32 @@
       return `<svg viewBox='0 0 100 100'>${cloud}</svg>`;
     }
 
-    // ===================== إنشاء البطاقة =====================
+    // ===== تحويل UTC±HH:MM إلى وقت محلي (لعرض الساعة فقط)
+    function parseUtcOffset(tz){
+      const m = /^UTC([+-])(\\d{2}):(\\d{2})$/.exec(tz||'');
+      if(!m) return null;
+      const sign = m[1]==='-'? -1:1; const h=+m[2], mi=+m[3];
+      return sign*(h*60+mi);
+    }
+    function formatTimeForTZ(now, tz){
+      const off = parseUtcOffset(tz);
+      if(off===null){
+        return {
+          time: new Intl.DateTimeFormat('ar-EG',{timeZone:tz,hour12:false,hour:'2-digit',minute:'2-digit'}).format(now),
+          date: new Intl.DateTimeFormat('ar-EG',{timeZone:tz,weekday:'long',day:'numeric',month:'long'}).format(now)
+        };
+      }
+      const localOff = now.getTimezoneOffset(); // بالدقائق، سالب للشرق
+      const ms = now.getTime() + (off - (-localOff)) * 60000;
+      const d = new Date(ms);
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mm = String(d.getMinutes()).padStart(2,'0');
+      const weekdays = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+      const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+      return { time: `${hh}:${mm}`, date: `${weekdays[d.getDay()]}، ${d.getDate()} ${months[d.getMonth()]}` };
+    }
+
+    // ===== إنشاء بطاقة
     function createCard(c){
       const card = document.createElement('article');
       card.className = 'card-base';
@@ -108,13 +171,12 @@
 
       const pad = document.createElement('div'); pad.className='absolute inset-0 p-5';
 
-      // أيقونة الطقس
       const iconEl = document.createElement('div');
       iconEl.className = 'absolute detail';
-      iconEl.style.left='20px'; iconEl.style.top='18px'; iconEl.style.width='72px'; iconEl.style.height='72px';
+      iconEl.style.left='20px'; iconEl.style.top='18px';
+      iconEl.style.width='72px'; iconEl.style.height='72px';
       iconEl.innerHTML = iconSVGByWeather(1,true);
 
-      // أعلى يمين — تمب + اسم + علم
       const topRight = document.createElement('div');
       topRight.className = 'absolute flex items-center gap-2';
       topRight.style.right='20px'; topRight.style.top='18px';
@@ -125,26 +187,23 @@
             <img src="https://flagcdn.com/w40/${c.flag}.png" class="w-8 h-6 rounded ring-1 ring-white/30"/>
             <span class="text-white/90 font-semibold">${c.name}</span>
           </div>
-          <div class="text-white/70 text-xs mt-0.5">${c.tz}</div>
+          <div class="text-white/70 text-xs mt-0.5" data-tz>${c.tz}</div>
         </div>`;
 
-      // أسفل يسار — الوقت والتاريخ (تفاصيل)
       const bottomLeft = document.createElement('div');
       bottomLeft.className = 'absolute detail';
       bottomLeft.style.left='20px'; bottomLeft.style.bottom='48px';
       bottomLeft.innerHTML = `<div class="text-white/90 text-sm" data-date>—</div><div class="text-5xl sm:text-6xl font-black tracking-tight" data-time>--:--</div>`;
 
-      // أسفل يمين — الغروب + سعر الصرف (تفاصيل)
       const bottomRight = document.createElement('div');
       bottomRight.className = 'absolute text-right detail';
       bottomRight.style.right='20px'; bottomRight.style.bottom='48px';
       bottomRight.innerHTML = `<div class="text-white/90 text-sm" data-sunset>غروب الشمس: —</div><div class="text-white/90 text-xs mt-2" data-fx>1 USD = — ${c.currency.code}</div>`;
 
-      // شريط خبر عاجل (تفاصيل)
       const newsBar = document.createElement('div');
       newsBar.className = 'news-bar detail text-[13px] text-slate-100';
       newsBar.style.padding = '6px 20px';
-      newsBar.innerHTML = `<span class='mr-2 text-red-300 font-semibold'>خبر عاجل:</span> <div class='inline-block overflow-hidden align-middle' style='max-width:calc(100% - 90px)'><div class='marquee-track' data-news>— وضع أوفلاين: فعّل الإنترنت لهذا البلد —</div><div class='marquee-track' aria-hidden='true' data-news-dup>— وضع أوفلاين: فعّل الإنترنت لهذا البلد —</div></div>`;
+      newsBar.innerHTML = `<span class='mr-2 text-red-300 font-semibold'>خبر عاجل:</span> <div class='inline-block overflow-hidden align-middle' style='max-width:calc(100% - 90px)'><div class='marquee-track' data-news>… جارِ تحميل الأخبار …</div><div class='marquee-track' aria-hidden='true' data-news-dup>… جارِ تحميل الأخبار …</div></div>`;
 
       pad.appendChild(iconEl);
       pad.appendChild(topRight);
@@ -155,23 +214,23 @@
       card.appendChild(pad);
       card.appendChild(c1); card.appendChild(c2);
 
+      // ساعة وتاريخ (تعمل حتى مع UTC±)
+      function tick(){
+        const now = new Date();
+        try{
+          const {time, date} = formatTimeForTZ(now, c.tz);
+          bottomLeft.querySelector('[data-time]').textContent = time;
+          bottomLeft.querySelector('[data-date]').textContent = date;
+        }catch{ bottomLeft.querySelector('[data-time]').textContent='—'; }
+      }
+      tick(); setInterval(tick,1000);
+
       card.addEventListener('click', async ()=>{
         const expanded = card.dataset.expanded === '1';
         card.style.transform = 'scale(1.03)'; setTimeout(()=> card.style.transform='', 160);
         card.dataset.expanded = expanded ? '0' : '1';
         if(!expanded && ENABLE_ONLINE){ await hydrateOnline(c, card); }
       });
-
-      // ساعة وتاريخ
-      function tick(){ const now = new Date();
-        try{
-          const t = new Intl.DateTimeFormat('ar-EG',{timeZone:c.tz,hour12:false,hour:'2-digit',minute:'2-digit'}).format(now);
-          const d = new Intl.DateTimeFormat('ar-EG',{timeZone:c.tz,weekday:'long',day:'numeric',month:'long'}).format(now);
-          bottomLeft.querySelector('[data-time]').textContent = t;
-          bottomLeft.querySelector('[data-date]').textContent = d;
-        }catch{ bottomLeft.querySelector('[data-time]').textContent='—'; }
-      }
-      tick(); setInterval(tick,1000);
 
       return card;
     }
@@ -181,57 +240,110 @@
       COUNTRIES.forEach(c=> gridEl.appendChild(createCard(c)));
     }
 
-    // ===================== أخبار عاجلة =====================
+    // ===== أخبار عاجلة (محاولات متعددة + كاش)
     async function fetchCountryHeadlines(code){
       const cacheKey = `cache:news:${code}`; const cached = getCache(cacheKey, TTL.news); if(cached) return cached;
       const cc = (code||'').toUpperCase();
-      const rssAR = `https://news.google.com/rss?hl=ar&gl=${cc}&ceid=${cc}:ar`;
-      const rssEN = `https://news.google.com/rss?hl=en&gl=${cc}&ceid=${cc}:en`;
-      const endpoints = [
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(rssAR)}`,
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(rssEN)}`,
+      const sources = [
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://news.google.com/rss?hl=ar&gl=${cc}&ceid=${cc}:ar`)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://news.google.com/rss?hl=en&gl=${cc}&ceid=${cc}:en`)}`,
         `https://r.jina.ai/http://news.google.com/rss?hl=ar&gl=${cc}&ceid=${cc}:ar`,
         `https://r.jina.ai/http://news.google.com/rss?hl=en&gl=${cc}&ceid=${cc}:en`
       ];
-      for(const url of endpoints){
+      for(const url of sources){
         try{
           const resp = await fetch(url); if(!resp.ok) continue;
-          const xml = await resp.text(); const doc = new DOMParser().parseFromString(xml,'text/xml');
+          const xml = await resp.text();
+          const doc = new DOMParser().parseFromString(xml, 'text/xml');
           const titles = [...doc.querySelectorAll('item > title')].map(n=> n.textContent.trim()).filter(Boolean).slice(0,8);
           if(titles.length){ setCache(cacheKey, titles); return titles; }
-        }catch{ /* next */ }
+        }catch{}
       }
       return [];
     }
 
-    // ===================== طقس/غروب + أسعار صرف =====================
-    async function hydrateOnline(c, card){
-      // طقس
+    // ===== استخراج ألوان من علم الدولة (SVG) + كاش
+    async function applyFlagTheme(c, card){
+      const key = `cache:flagTheme:${c.code}`;
+      let theme = getCache(key, TTL.theme);
+      if(theme){ card.style.background = gradient(theme,false); return; }
+      const tryUrls = [
+        `https://flagcdn.com/${c.flag}.svg`,
+        `https://restcountries.com/v3.1/alpha/${c.code}` // رجوع للـSVG عبر REST
+      ];
       try{
-        const wKey = `cache:weather:${c.code}`; const cached = getCache(wKey, TTL.weather);
-        let payload = cached;
+        let svgText=null;
+        for(const u of tryUrls){
+          if(u.includes('restcountries')){
+            const r=await fetch(u); if(r.ok){ const j=await r.json(); const svgUrl = j?.[0]?.flags?.svg; if(svgUrl){ const r2=await fetch(svgUrl); if(r2.ok){ svgText = await r2.text(); break; } } }
+          } else {
+            const r=await fetch(u); if(r.ok){ svgText = await r.text(); break; }
+          }
+        }
+        if(svgText){
+          const colors=[]; const doc=new DOMParser().parseFromString(svgText,'image/svg+xml');
+          doc.querySelectorAll('*').forEach(el=>{
+            const f=el.getAttribute('fill'); const s=el.getAttribute('stroke');
+            const push = (v)=>{ if(!v) return; const vv=v.toLowerCase(); if(vv==='none'||vv==='transparent') return; colors.push(v); };
+            push(f); push(s);
+          });
+          const usable = colors.filter(h=>!/^#?0{3,6}$/i.test(h) && !/^#?f{3,6}$/i.test(h)); // استبعاد الأبيض والأسود
+          if(usable.length){
+            const first = usable[0];
+            const second = usable.find(x => x!==first) || '#8b5cf6';
+            theme = { from:first, to:second };
+            setCache(key, theme);
+            card.style.background = gradient(theme,false);
+          }
+        }
+      }catch{/* نتجاهل ونبقى على الألوان الافتراضية */}
+    }
+
+    // ===== طقس/غروب + أسعار + أخبار
+    async function hydrateOnline(c, card){
+      // لو قدرنا نجيب ألوان العلم — نطبّقها
+      applyFlagTheme(c, card);
+
+      // طقس (timezone=auto لتفادي مشاكل IANA)
+      try{
+        const wKey = `cache:weather:${c.code}`; let payload = getCache(wKey, TTL.weather);
         if(!payload){
-          const wurl = `https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current_weather=true&daily=sunset&timezone=${encodeURIComponent(c.tz)}`;
+          const wurl = `https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current_weather=true&daily=sunset&timezone=auto`;
           const wr = await fetch(wurl); if(wr.ok){ payload = await wr.json(); setCache(wKey, payload); }
         }
-        if(payload){ const cw = payload.current_weather||{}; const temp=cw.temperature; const code=cw.weathercode; const is_day=cw.is_day===1; const sunsetISO=payload?.daily?.sunset?.[0]||null; card.querySelector('[data-temp]').textContent = (temp!=null? Math.round(temp):'—')+'°'; card.querySelector('.absolute.detail').innerHTML = iconSVGByWeather(code||1, !!is_day); card.style.background = gradient(c.theme, !is_day); if(sunsetISO){ const t=new Date(sunsetISO); card.querySelector('[data-sunset]').textContent = `غروب الشمس: ${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}`; } }
+        if(payload){
+          const cw = payload.current_weather||{};
+          const temp=cw.temperature; const code=cw.weathercode; const is_day=cw.is_day===1;
+          const sunsetISO=payload?.daily?.sunset?.[0]||null;
+          card.querySelector('[data-temp]').textContent = (temp!=null? Math.round(temp):'—')+'°';
+          card.querySelector('.absolute.detail').innerHTML = iconSVGByWeather(code||1, !!is_day);
+          if(sunsetISO){ const t=new Date(sunsetISO); card.querySelector('[data-sunset]').textContent = `غروب الشمس: ${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}`; }
+        }
       }catch{}
+
       // أسعار صرف
       try{
         const fxKey = `cache:fx:${c.currency.code}`; let rate = getCache(fxKey, TTL.fx);
-        if(!rate){ const r = await fetch(`https://api.exchangerate.host/latest?base=USD&symbols=${c.currency.code}`); if(r.ok){ const data=await r.json(); rate=data?.rates?.[c.currency.code]; if(rate) setCache(fxKey, rate); }}
+        if(!rate){
+          const r = await fetch(`https://api.exchangerate.host/latest?base=USD&symbols=${c.currency.code}`);
+          if(r.ok){ const data=await r.json(); rate=data?.rates?.[c.currency.code]; if(rate) setCache(fxKey, rate); }
+        }
         if(rate){ card.querySelector('[data-fx]').textContent = `1 USD = ${Number(rate).toLocaleString('ar-EG',{maximumFractionDigits:4})} ${c.currency.code}`; }
       }catch{}
+
       // أخبار عاجلة
       try{
         const titles = await fetchCountryHeadlines(c.code);
         const text = titles.length ? titles.join(' • ') : '— لا توجد عناوين متاحة —';
         card.querySelector('[data-news]').textContent = '  '+text+'  ';
         card.querySelector('[data-news-dup]').textContent = '  '+text+'  ';
-      }catch{}
+      }catch{
+        card.querySelector('[data-news]').textContent = '— تعذّر تحميل الأخبار —';
+        card.querySelector('[data-news-dup]').textContent = '— تعذّر تحميل الأخبار —';
+      }
     }
 
-    // ===================== تحميل كل الدول (أونلاين ثم كاش) =====================
+    // ===== جلب كل الدول (أونلاين → كاش)
     async function fetchAllCountriesOnline(){
       const key = 'cache:countries_full'; const cached = getCache(key, TTL.countries);
       if(cached && Array.isArray(cached) && cached.length>100) return cached;
@@ -256,11 +368,10 @@
         const flag = (code||'').toLowerCase(); const region = it.region || 'World';
         return { code, name, tz, lat, lon, currency, flag, region, theme: themeFromCode(code) };
       }).sort((a,b)=> a.name.localeCompare(b.name,'ar'));
-      setCache(key, list);
-      return list;
+      setCache(key, list); return list;
     }
 
-    // ===================== بحث =====================
+    // ===== بحث
     searchEl.addEventListener('input',()=>{
       const q = searchEl.value.trim().toLowerCase();
       gridEl.querySelectorAll('article').forEach(el=>{
@@ -269,28 +380,27 @@
       });
     });
 
-    // ===================== أزرار أعلى الصفحة =====================
+    // ===== الأزرار
     toggleOnlineBtn.addEventListener('click',()=>{
       ENABLE_ONLINE = !ENABLE_ONLINE;
       toggleOnlineBtn.textContent = ENABLE_ONLINE? 'إيقاف المزايا أونلاين' : 'تشغيل المزايا أونلاين';
-      hintEl.textContent = ENABLE_ONLINE? 'وضع أونلاين: عند فتح أي بطاقة سيتم جلب الطقس/الأسعار/الأخبار وتخزينها في الكاش.' : 'وضع أوفلاين: بدون اتصالات خارجية. استخدم الكاش إن وُجد.';
+      hintEl.textContent = ENABLE_ONLINE? 'أونلاين: عند فتح بطاقة سنجلب الطقس/الأسعار/الأخبار ونحفظها في الكاش.' : 'أوفلاين: عرض بدون اتصالات خارجية.';
     });
 
     cacheCountriesBtn.addEventListener('click', async ()=>{
       cacheCountriesBtn.disabled=true; cacheCountriesBtn.textContent='جارِ الحفظ…';
       const list = await fetchAllCountriesOnline();
-      if(list && list.length){ COUNTRIES = list; renderAll(); hintEl.textContent = `تم حفظ ${list.length} دولة في الكاش. تستطيع العمل بها أوفلاين لاحقًا.`; }
+      if(list && list.length){ COUNTRIES = list; renderAll(); hintEl.textContent = `تم حفظ ${list.length} دولة في الكاش.`; }
       else { hintEl.textContent = 'تعذّر جلب قائمة الدول الآن.'; }
       cacheCountriesBtn.textContent='حفظ كل الدول في الكاش'; cacheCountriesBtn.disabled=false;
     });
 
-    // ===================== إقلاع =====================
+    // ===== بدء
     (function init(){
-      // ابدأ بأوفلاين 50 دولة — ثم لو كان هناك كاش كامل استعمله
       const cachedList = getCache('cache:countries_full', TTL.countries);
       COUNTRIES = (cachedList && cachedList.length ? cachedList : OFFLINE50);
       renderAll();
     })();
-
-  </script></body>
+  </script>
+</body>
 </html>
