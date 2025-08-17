@@ -1,403 +1,263 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html><html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>مولّد Sprite + لعبة هروب الفرخة</title>
-<style>
-  :root{--bg:#0e1013;--panel:#151922;--text:#e8eef7;--accent:#ffd166;--danger:#ff4d4f;--ok:#30d158}
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:linear-gradient(#1a1f2a,#0e1013) fixed;color:var(--text);font-family:system-ui,Segoe UI,Roboto,Arial}
-  h1,h2,h3{margin:.3em 0}
-  .wrap{max-width:1100px;margin:auto;padding:18px;display:grid;gap:16px}
-  .card{background:var(--panel);border:1px solid #ffffff22;border-radius:16px;padding:16px;box-shadow:0 10px 30px #0006}
-  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-  label{opacity:.95}
-  input[type="number"],input[type="color"],select{background:#0c0f15;color:#fff;border:1px solid #ffffff22;border-radius:10px;padding:6px 10px}
-  input[type="file"]{accent-color:#ffd166}
-  button{background:var(--accent);color:#2b2b2b;font-weight:900;border:none;border-radius:12px;padding:9px 14px;cursor:pointer}
-  button:disabled{opacity:.6;cursor:not-allowed}
-  .mono{font-family:ui-monospace,Consolas,monospace}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .hint{opacity:.8;font-size:.95rem}
-  /* لعبة */
-  .stage{display:flex;align-items:center;justify-content:center}
-  canvas.game{background:linear-gradient(#8fd3ff,#dff4ff 60%,#a1e6a1);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35);max-width:100%;height:auto}
-  .hud{position:sticky;top:6px;display:flex;gap:10px;flex-wrap:wrap}
-  .pill{padding:6px 10px;background:#0006;border-radius:999px}
-  .lead{width:180px;height:10px;background:#222a;border-radius:999px;overflow:hidden;outline:1px solid #fff2}
-  .lead>i{display:block;height:100%;width:50%;background:linear-gradient(90deg,var(--ok),var(--accent))}
-  .overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(14,16,19,.85),rgba(14,16,19,.6));color:var(--text);text-align:center;padding:20px;z-index:10}
-  .btn{margin-top:8px}
-  .uploader{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#0c0f15;border:1px solid #ffffff22;border-radius:12px;padding:8px 10px}
-  .tabs{display:flex;gap:8px}
-  .tabbtn{background:#0c0f15;color:#cfe3ff;border:1px solid #ffffff22}
-  .tabbtn.active{background:var(--accent);color:#222}
-  .section{display:none}
-  .section.active{display:block}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>بطاقات الدول — الوقت • الطقس • العملة</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html, body { height: 100%; }
+    body { background: #0f172a; /* slate-900 */ }
+    .card-gradient{ background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)); }
+  </style>
 </head>
-<body>
-<div class="wrap">
-  <div class="tabs">
-    <button class="tabbtn active" data-tab="gen">① مولّد Sprite للفرخة</button>
-    <button class="tabbtn" data-tab="game">② لعبة هروب الفرخة</button>
-  </div>
-
-  <!-- SECTION 1: Generator -->
-  <section id="gen" class="section active">
-    <div class="card">
-      <h1>مولّد SpriteSheet — فرخة كرتونية (4 إطارات)</h1>
-      <p class="hint">الإطارات: وقوف، ركض1، ركض2، قفزة — مستوحى من الكتكوت الذي أرسلته (أصفر، منقار برتقالي، عيون كبيرة وخط خارجي داكن).</p>
-      <div class="row">
-        <label>حجم الإطار(px): <input id="g_size" type="number" min="32" max="256" value="64"></label>
-        <label>سُمك الحد: <input id="g_stroke" type="number" min="1" max="6" value="3"></label>
-        <label>لون الجسم: <input id="g_cBody" type="color" value="#ffd23f"></label>
-        <label>لون الظلال: <input id="g_cShade" type="color" value="#f3b41b"></label>
-        <label>لون المنقار/الأرجل: <input id="g_cBeak" type="color" value="#ff8f1f"></label>
-        <label>لون الحد الخارجي: <input id="g_cOut" type="color" value="#6a3f1f"></label>
-        <label>خلفية: 
-          <select id="g_bg">
-            <option value="transparent" selected>شفافة (PNG)</option>
-            <option value="preview">معاينة فاتحة</option>
-          </select>
-        </label>
-        <button id="g_build">إعادة توليد</button>
-        <button id="g_download">تحميل PNG</button>
-        <button id="g_use">استخدم في اللعبة ⏩</button>
+<body class="min-h-screen text-slate-100">
+  <header class="sticky top-0 z-30 backdrop-blur bg-slate-900/80 border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">🌍</span>
+        <h1 class="text-xl md:text-2xl font-bold">بطاقات الدول — الوقت • الطقس • العملة</h1>
+      </div>
+      <div class="flex flex-col md:flex-row gap-2 md:items-center w-full md:w-auto">
+        <input id="search" type="text" placeholder="ابحث عن دولة…" class="w-full md:w-80 px-4 py-2 rounded-xl bg-slate-800/80 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        <button id="refreshBtn" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 transition font-medium">تحديث البيانات</button>
       </div>
     </div>
+  </header>  <main class="max-w-7xl mx-auto p-4">
+    <p class="text-slate-300 mb-4">يتطلب اتصالاً بالإنترنت لقراءة الطقس وأسعار الصرف. الوقت يُحسب محليًا حسب المنطقة الزمنية لكل دولة.</p>
+    <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+  </main>  <footer class="max-w-7xl mx-auto p-6 text-sm text-slate-400">
+    <p>نصيحة: لإضافة دولة جديدة، أضف كائنًا جديدًا داخل المصفوفة <code>COUNTRIES</code> بالأسفل مع الإحداثيات والعملة والمنطقة الزمنية.</p>
+  </footer>  <script>
+    // ====== إعداد الدول (يمكنك تعديل/إضافة دول جديدة هنا) ======
+    const COUNTRIES = [
+      { code:'DE', name:'ألمانيا', tz:'Europe/Berlin', lat:52.52, lon:13.405, currency:{code:'EUR', symbol:'€', name:'اليورو'}, accent:'#FFD100', flag:'de' },
+      { code:'TR', name:'تركيا', tz:'Europe/Istanbul', lat:41.015137, lon:28.97953, currency:{code:'TRY', symbol:'₺', name:'الليرة التركية'}, accent:'#E30A17', flag:'tr' },
+      { code:'SA', name:'السعودية', tz:'Asia/Riyadh', lat:24.7136, lon:46.6753, currency:{code:'SAR', symbol:'﷼', name:'الريال السعودي'}, accent:'#006C35', flag:'sa' },
+      { code:'AE', name:'الإمارات', tz:'Asia/Dubai', lat:25.2048, lon:55.2708, currency:{code:'AED', symbol:'د.إ', name:'الدرهم الإماراتي'}, accent:'#00732F', flag:'ae' },
+      { code:'EG', name:'مصر', tz:'Africa/Cairo', lat:30.0444, lon:31.2357, currency:{code:'EGP', symbol:'£', name:'الجنيه المصري'}, accent:'#CE1126', flag:'eg' },
+      { code:'GB', name:'بريطانيا', tz:'Europe/London', lat:51.5072, lon:-0.1276, currency:{code:'GBP', symbol:'£', name:'الجنيه الإسترليني'}, accent:'#012169', flag:'gb' },
+      { code:'JP', name:'اليابان', tz:'Asia/Tokyo', lat:35.6762, lon:139.6503, currency:{code:'JPY', symbol:'¥', name:'الين الياباني'}, accent:'#B50014', flag:'jp' },
+      { code:'US', name:'أمريكا', tz:'America/New_York', lat:40.7128, lon:-74.0060, currency:{code:'USD', symbol:'$', name:'الدولار الأمريكي'}, accent:'#3C3B6E', flag:'us' },
+      { code:'FR', name:'فرنسا', tz:'Europe/Paris', lat:48.8566, lon:2.3522, currency:{code:'EUR', symbol:'€', name:'اليورو'}, accent:'#0055A4', flag:'fr' },
+      { code:'CH', name:'سويسرا', tz:'Europe/Zurich', lat:47.3769, lon:8.5417, currency:{code:'CHF', symbol:'Fr', name:'الفرنك السويسري'}, accent:'#D52B1E', flag:'ch' },
+    ];
 
-    <div class="grid">
-      <div class="card">
-        <h3>SpriteSheet الناتج (1×4)</h3>
-        <canvas id="g_sheet" width="256" height="64"></canvas>
-        <div id="g_meta" class="hint mono"></div>
-      </div>
-      <div class="card">
-        <h3>معاينة الحركة</h3>
-        <canvas id="g_prev" width="256" height="160"></canvas>
-        <div class="hint">اضبط المقاس/الألوان ثم اضغط <b>إعادة توليد</b>. استخدم زر <b>استخدم في اللعبة</b> ليتم تحويلك لصفحة اللعبة مباشرة.</div>
-      </div>
-    </div>
-  </section>
+    // ====== عناصر DOM ======
+    const gridEl = document.getElementById('grid');
+    const searchEl = document.getElementById('search');
+    const refreshBtn = document.getElementById('refreshBtn');
 
-  <!-- SECTION 2: Game -->
-  <section id="game" class="section">
-    <div class="card">
-      <h1>لعبة هروب الفرخة 🐔</h1>
-      <div class="row">
-        <div class="uploader">
-          <b>Sprite الفرخة:</b>
-          <span id="game_chicken_status" class="hint">يُحمَّل من المولّد تلقائيًا. يمكنك رفع ملف آخر إن أردت.</span>
-          <input id="f_chicken" type="file" accept="image/png,image/webp">
-          <label>إطارات</label><input id="f_ch_frames" type="number" min="1" value="4">
-          <label>FPS</label><input id="f_ch_fps" type="number" min="1" value="10">
+    // ====== بناء البطاقات ======
+    function createCard(country){
+      const card = document.createElement('div');
+      card.className = 'card-gradient rounded-2xl overflow-hidden border border-slate-800 shadow-xl shadow-slate-900/40';
+      card.dataset.countryName = country.name;
+
+      const accentBar = document.createElement('div');
+      accentBar.className = 'h-1.5 w-full';
+      accentBar.style.backgroundColor = country.accent;
+
+      const inner = document.createElement('div');
+      inner.className = 'p-4 flex flex-col gap-3';
+
+      // Header: Flag + Country name
+      const header = document.createElement('div');
+      header.className = 'flex items-center gap-3';
+      header.innerHTML = `
+        <img src="https://flagcdn.com/w40/${country.flag.toLowerCase()}.png" alt="${country.name}" class="w-9 h-6 rounded shadow ring-1 ring-slate-700"/>
+        <div class="flex-1">
+          <h2 class="font-bold text-lg">${country.name}</h2>
+          <p class="text-slate-400 text-sm">${country.currency.name} (${country.currency.code})</p>
         </div>
-        <div class="uploader">
-          <b>Sprite القط:</b>
-          <input id="f_cat" type="file" accept="image/png,image/webp">
-          <label>إطارات</label><input id="f_cat_frames" type="number" min="1" value="6">
-          <label>FPS</label><input id="f_cat_fps" type="number" min="1" value="12">
-          <span class="hint">أو اتركه فارغًا لاستخدام رسم افتراضي.</span>
+      `;
+
+      // Time display
+      const timeBox = document.createElement('div');
+      timeBox.className = 'rounded-xl bg-slate-800/60 border border-slate-700 p-3 flex items-center justify-between';
+      timeBox.innerHTML = `
+        <div>
+          <div class="text-sm text-slate-400">الوقت الآن</div>
+          <div class="text-2xl font-bold" data-time></div>
         </div>
-      </div>
-      <div class="row">
-        <span class="pill">المسافة: <b id="score">0</b>م</span>
-        <span class="pill" id="levelName">القرية</span>
-        <div class="lead"><i id="leadFill"></i></div>
-        <span class="pill">🟡 <b id="corn">0</b></span>
-        <span class="pill hint">التحكم: مسافة/نقرة = قفز • P إيقاف • R إعادة</span>
-      </div>
-    </div>
+        <div class="text-right">
+          <div class="text-sm text-slate-400">المنطقة الزمنية</div>
+          <div class="font-mono text-sm" title="${country.tz}">${country.tz}</div>
+        </div>
+      `;
 
-    <div class="card stage">
-      <canvas id="game_canvas" class="game" width="960" height="540"></canvas>
-    </div>
-  </section>
-</div>
+      // Weather box
+      const weatherBox = document.createElement('div');
+      weatherBox.className = 'rounded-xl bg-slate-800/60 border border-slate-700 p-3 flex items-center justify-between';
+      weatherBox.innerHTML = `
+        <div>
+          <div class="text-sm text-slate-400">درجة الحرارة</div>
+          <div class="text-2xl font-bold"><span data-temp>—</span><span class="text-slate-300 text-base">°C</span></div>
+        </div>
+        <div class="text-right">
+          <div class="text-sm text-slate-400">آخر تحديث</div>
+          <div class="text-sm" data-weather-updated>—</div>
+        </div>
+      `;
 
-<div id="overlay" class="overlay">
-  <div class="card">
-    <h2>ابدأ اللعب</h2>
-    <p>Sprite الفرخة تم تجهيزه. اضغط بدء!</p>
-    <button id="startBtn" class="btn">ابدأ اللعب</button>
-  </div>
-</div>
+      // Currency box
+      const fxBox = document.createElement('div');
+      fxBox.className = 'rounded-xl bg-slate-800/60 border border-slate-700 p-3';
+      fxBox.innerHTML = `
+        <div class="flex items-center justify-between gap-3">
+          <div class="text-sm text-slate-400">سعر العملة مقابل الدولار</div>
+          <div class="text-xs text-slate-400" data-fx-updated>—</div>
+        </div>
+        <div class="mt-1 grid grid-cols-1 gap-1">
+          <div class="font-mono" data-fx-1usd>1 USD = — ${country.currency.code}</div>
+          <div class="font-mono" data-fx-1local>1 ${country.currency.code} = — USD</div>
+        </div>
+      `;
 
-<script>
-/* ========= التبويبات ========= */
-document.querySelectorAll('.tabbtn').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById(btn.dataset.tab).classList.add('active');
-  });
-});
+      inner.appendChild(header);
+      inner.appendChild(timeBox);
+      inner.appendChild(weatherBox);
+      inner.appendChild(fxBox);
 
-/* ========= مولّد Sprite للفرخة ========= */
-(() => {
-  const sheet = document.getElementById('g_sheet');
-  const prev  = document.getElementById('g_prev');
-  const sctx = sheet.getContext('2d'), pctx = prev.getContext('2d');
-  const ui = {
-    size: g_size, stroke: g_stroke, cBody: g_cBody, cShade: g_cShade, cBeak: g_cBeak, cOut: g_cOut, bg: g_bg,
-    build: g_build, download: g_download, use: g_use, meta: g_meta
-  };
-  let t0=0, frame=0, acc=0;
+      card.appendChild(accentBar);
+      card.appendChild(inner);
 
-  function oval(ctx,x,y,rx,ry){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);}
-  function drawChick(ctx,cx,cy,scale,pose,cols,strokeW){
-    ctx.save(); ctx.translate(cx,cy); ctx.scale(scale,scale);
-    ctx.lineJoin='round'; ctx.lineCap='round'; ctx.strokeStyle=cols.out; ctx.lineWidth=strokeW/scale;
+      // attach live time updater
+      const timeEl = timeBox.querySelector('[data-time]');
+      function updateTime(){
+        try{
+          const now = new Date();
+          const formatter = new Intl.DateTimeFormat('ar-EG', {
+            timeZone: country.tz,
+            hour12: false,
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+          });
+          timeEl.textContent = formatter.format(now);
+        }catch(e){
+          timeEl.textContent = '— معرّف منطقة خاطئ';
+        }
+      }
+      updateTime();
+      setInterval(updateTime, 1000);
 
-    const tilt = pose===1?-0.06:pose===2?0.06:0; ctx.rotate(tilt);
-    const bobY = pose===3?-2:(pose===1?1:pose===2?-1:0); ctx.translate(0,bobY);
+      // store refs for later updates
+      card._refs = {
+        tempEl: weatherBox.querySelector('[data-temp]'),
+        weatherUpdatedEl: weatherBox.querySelector('[data-weather-updated]'),
+        fx1usdEl: fxBox.querySelector('[data-fx-1usd]'),
+        fx1localEl: fxBox.querySelector('[data-fx-1local]'),
+        fxUpdatedEl: fxBox.querySelector('[data-fx-updated]')
+      };
 
-    ctx.fillStyle=cols.body; oval(ctx,0,6,22,18); ctx.fill(); ctx.stroke();
+      return card;
+    }
 
-    ctx.fillStyle=cols.shade; ctx.globalAlpha=.35; oval(ctx,4,10,14,10); ctx.fill(); ctx.globalAlpha=1;
+    // ====== إدراج كل البطاقات ======
+    const cardMap = new Map(); // code -> element
+    function renderAll(){
+      gridEl.innerHTML = '';
+      COUNTRIES.forEach(c => {
+        const el = createCard(c);
+        gridEl.appendChild(el);
+        cardMap.set(c.code, el);
+      });
+    }
 
-    ctx.fillStyle=cols.body; oval(ctx,-6,-12,16,16); ctx.fill(); ctx.stroke();
+    // ====== الطقس: Open-Meteo (بدون مفتاح) ======
+    async function fetchWeather(country){
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${country.lat}&longitude=${country.lon}&current_weather=true&timezone=${encodeURIComponent(country.tz)}`;
+      const r = await fetch(url);
+      if(!r.ok) throw new Error('Weather HTTP '+r.status);
+      const data = await r.json();
+      const t = data?.current_weather?.temperature; // °C
+      return typeof t === 'number' ? t : null;
+    }
 
-    ctx.beginPath(); ctx.moveTo(-10,-22); ctx.quadraticCurveTo(-8,-26,-5,-22); ctx.quadraticCurveTo(-9,-24,-12,-20); ctx.stroke();
+    async function updateAllWeather(){
+      await Promise.all(COUNTRIES.map(async (c)=>{
+        const card = cardMap.get(c.code);
+        try{
+          const temp = await fetchWeather(c);
+          card._refs.tempEl.textContent = temp !== null ? temp.toLocaleString('ar-EG', {maximumFractionDigits: 1}) : '—';
+          card._refs.weatherUpdatedEl.textContent = new Date().toLocaleTimeString('ar-EG', { hour12:false });
+        }catch(err){
+          card._refs.tempEl.textContent = '—';
+          card._refs.weatherUpdatedEl.textContent = 'فشل التحديث';
+        }
+      }));
+    }
 
-    ctx.fillStyle='#202020'; ctx.beginPath(); ctx.arc(-10,-14,2.8,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(-10.8,-14.8,1.1,0,Math.PI*2); ctx.fill();
+    // ====== أسعار الصرف: exchangerate.host (بدون مفتاح) ======
+    function collectSymbols(){
+      const set = new Set();
+      COUNTRIES.forEach(c => set.add(c.currency.code));
+      set.delete('USD'); // لا حاجة له في الاستعلام (ثابت)
+      return Array.from(set);
+    }
 
-    ctx.fillStyle=cols.beak; ctx.beginPath(); ctx.moveTo(-2,-12); ctx.lineTo(6,-10);
-    ctx.quadraticCurveTo(-1,-8,-2,-12); ctx.closePath(); ctx.fill(); ctx.stroke();
+    async function fetchRates(){
+      const symbols = collectSymbols();
+      if(symbols.length === 0) return {};
+      const url = `https://api.exchangerate.host/latest?base=USD&symbols=${symbols.join(',')}`;
+      const r = await fetch(url);
+      if(!r.ok) throw new Error('FX HTTP '+r.status);
+      const data = await r.json();
+      return data?.rates || {};
+    }
 
-    ctx.save(); ctx.translate(8,-2); ctx.rotate((pose===3||pose===2)?-0.6:-0.15);
-    ctx.fillStyle=cols.body; oval(ctx,0,0,10,7); ctx.fill(); ctx.stroke(); ctx.restore();
+    async function updateAllFX(){
+      let rates = {};
+      try{
+        rates = await fetchRates();
+      }catch(err){
+        // عرض فشل عام
+      }
+      COUNTRIES.forEach(c => {
+        const card = cardMap.get(c.code);
+        if(c.currency.code === 'USD'){
+          card._refs.fx1usdEl.textContent = `1 USD = 1.0000 USD`;
+          card._refs.fx1localEl.textContent = `1 USD = 1.0000 USD`; // عرض بسيط
+          card._refs.fxUpdatedEl.textContent = new Date().toLocaleTimeString('ar-EG', { hour12:false });
+          return;
+        }
+        const perUSD = rates[c.currency.code]; // كم من العملة المحلية مقابل 1 دولار
+        if(typeof perUSD === 'number' && perUSD > 0){
+          const oneLocalInUSD = 1 / perUSD;
+          card._refs.fx1usdEl.textContent = `1 USD = ${perUSD.toLocaleString('ar-EG', {maximumFractionDigits: 4})} ${c.currency.code}`;
+          card._refs.fx1localEl.textContent = `1 ${c.currency.code} = ${oneLocalInUSD.toLocaleString('ar-EG', {maximumFractionDigits: 4})} USD`;
+          card._refs.fxUpdatedEl.textContent = new Date().toLocaleTimeString('ar-EG', { hour12:false });
+        }else{
+          card._refs.fx1usdEl.textContent = `1 USD = — ${c.currency.code}`;
+          card._refs.fx1localEl.textContent = `1 ${c.currency.code} = — USD`;
+          card._refs.fxUpdatedEl.textContent = 'فشل التحديث';
+        }
+      });
+    }
 
-    ctx.save(); ctx.translate(16,6); ctx.rotate(0.3); ctx.fillStyle=cols.body;
-    oval(ctx,0,0,8,6); ctx.fill(); ctx.stroke(); ctx.restore();
-
-    ctx.strokeStyle=cols.beak; // legs
-    ctx.beginPath(); ctx.moveTo(-2,20); ctx.lineTo(-2, pose===1?16:20); ctx.lineTo(-8,22); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(6,20); ctx.lineTo(6, pose===2?16:20); ctx.lineTo(12,22); ctx.stroke();
-
-    ctx.restore();
-  }
-
-  function rebuild(){
-    const size=+ui.size.value||64, stroke=+ui.stroke.value||3;
-    const cols={body:ui.cBody.value, shade:ui.cShade.value, beak:ui.cBeak.value, out:ui.cOut.value};
-    sheet.width=size*4; sheet.height=size;
-    if(ui.bg.value==='preview'){ sctx.fillStyle='#fff8e6'; sctx.fillRect(0,0,sheet.width,sheet.height); } else sctx.clearRect(0,0,sheet.width,sheet.height);
-    const poses=[0,1,2,3];
-    for(let i=0;i<4;i++){ sctx.save(); sctx.translate(i*size+size/2, size/2); const sc=size/64; drawChick(sctx,0,0,sc,poses[i],cols,stroke); sctx.restore(); }
-    ui.meta.textContent=`المقاس: ${size}×${size} لكل إطار — إجمالي: ${sheet.width}×${sheet.height} — إطارات: 4 — PNG`;
-    buildPreview();
-  }
-  function buildPreview(){ t0=performance.now(); frame=0; acc=0; }
-  function loop(ts){
-    const dt=((ts-t0)/1000)||0; t0=ts; acc+=dt; const fps=8; if(acc>=1/fps){acc=0; frame=(frame+1)%4;}
-    pctx.clearRect(0,0,prev.width,prev.height);
-    pctx.fillStyle='#a1e6a1'; pctx.fillRect(0,120,prev.width,40);
-    const size=+ui.size.value||64; const sx=frame*size;
-    pctx.fillStyle='rgba(0,0,0,.2)'; pctx.beginPath(); pctx.ellipse(128,118,28,6,0,Math.PI*2); pctx.fill();
-    pctx.drawImage(sheet,sx,0,size,size,128-size/2,118-size,size,size);
-    requestAnimationFrame(loop);
-  }
-  function downloadPNG(){ const a=document.createElement('a'); a.href=sheet.toDataURL('image/png'); a.download=`chicken_run_${+ui.size.value||64}px_x4.png`; a.click(); }
-  function useInGame(){
-    // مرّر الصورة للعبة
-    window.__SPRITE_DATAURL__ = sheet.toDataURL('image/png');
-    document.querySelector('.tabbtn[data-tab="game"]').click();
-    document.getElementById('overlay').style.display='flex';
-    document.getElementById('game_chicken_status').textContent='تم الإرسال من المولّد.';
-  }
-
-  ui.build.addEventListener('click', rebuild);
-  ui.download.addEventListener('click', downloadPNG);
-  ui.use.addEventListener('click', useInGame);
-  rebuild(); requestAnimationFrame(loop);
-})();
-
-/* ========= اللعبة ========= */
-(() => {
-  const canvas=document.getElementById('game_canvas'), ctx=canvas.getContext('2d');
-  const W=canvas.width, H=canvas.height, groundY=H-82;
-  const HUD={score:score, level:levelName, lead:leadFill, corn:corn};
-  const overlay=document.getElementById('overlay'), startBtn=document.getElementById('startBtn');
-
-  const G=1700, JUMP_V=-720, BASE_SPEED=240;
-  const levels=[{name:"القرية",mul:1,sky:"#dff4ff",grass:"#a1e6a1"},{name:"المزرعة",mul:1.18,sky:"#d7f0ff",grass:"#93db8f"},{name:"المدينة",mul:1.32,sky:"#cfeaff",grass:"#86d38a"},{name:"القلعة",mul:1.48,sky:"#c7e3ff",grass:"#78ca82"}];
-  const gates=[0,800,2200,4200];
-
-  let running=false, paused=false, gameOver=false, last=0;
-  let world={speed:BASE_SPEED,distance:0,idx:0,bgTick:0};
-  const player={x:180,y:groundY-64,w:72,h:64,vy:0,onGround:true,flap:0};
-  const cat={w:80,h:64,y:groundY-64,lead:140,approach:14};
-
-  const obstacles=[], coins=[], feathers=[]; let spawnObsT=0, spawnCoinT=0, spawnFeatT=6, cornCount=0;
-
-  function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
-  function aabb(ax,ay,aw,ah,bx,by,bw,bh){return ax<bx+bw&&ax+aw>bx&&ay<by+bh&&ay+ah>by;}
-  function roundRect(x,y,w,h,r,fill,stroke){ if(w<2*r)r=w/2; if(h<2*r)r=h/2; ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); if(fill)ctx.fill(); if(stroke)ctx.stroke(); }
-
-  // Sprite helper
-  function makeSprite(){ return {img:new Image(),ready:false,frames:4,fps:10,frame:0,acc:0,
-    draw(x,y,w,h,dt){
-      if(!this.ready){ ctx.fillStyle="#0002"; ctx.fillRect(x+8,y+h-6,w-16,4); return; }
-      const fw=this.img.width/this.frames, fh=this.img.height;
-      this.acc+=dt; const step=1/Math.max(1,this.fps); while(this.acc>=step){this.acc-=step; this.frame=(this.frame+1)%this.frames;}
-      ctx.drawImage(this.img, fw*this.frame,0,fw,fh, x,y,w,h);
-    }}}
-  const spriteChicken=makeSprite(), spriteCat=makeSprite();
-
-  // استلام Sprite من المولّد
-  if(window.__SPRITE_DATAURL__){
-    spriteChicken.img.onload=()=>{spriteChicken.ready=true;}; spriteChicken.img.src=window.__SPRITE_DATAURL__;
-  }
-
-  // رفع يدوي
-  function bindFile(input, spr, framesEl, fpsEl){
-    input.addEventListener('change', ()=>{
-      const f=input.files?.[0]; if(!f) return;
-      const url=URL.createObjectURL(f);
-      spr.img=new Image();
-      spr.img.onload=()=>{spr.ready=true; spr.frames=+framesEl.value||spr.frames; spr.fps=+fpsEl.value||spr.fps; spr.frame=0; spr.acc=0;};
-      spr.img.src=url;
+    // ====== البحث/الفلترة ======
+    searchEl.addEventListener('input', () => {
+      const q = searchEl.value.trim();
+      const norm = q;
+      cardMap.forEach((el) => {
+        const name = el.dataset.countryName || '';
+        const show = name.includes(norm);
+        el.style.display = show ? '' : 'none';
+      });
     });
-    framesEl.addEventListener('change',()=>{ spr.frames=+framesEl.value||spr.frames; });
-    fpsEl.addEventListener('change',()=>{ spr.fps=+fpsEl.value||spr.fps; });
-  }
-  bindFile(f_chicken, spriteChicken, f_ch_frames, f_ch_fps);
-  bindFile(f_cat, spriteCat, f_cat_frames, f_cat_fps);
 
-  function reset(){
-    running=true; paused=false; gameOver=false; last=0;
-    world={speed:BASE_SPEED,distance:0,idx:0,bgTick:0};
-    Object.assign(player,{x:180,y:groundY-64,w:72,h:64,vy:0,onGround:true,flap:0});
-    cat.lead=140; cat.y=groundY-64;
-    obstacles.length=coins.length=feathers.length=0;
-    spawnObsT=0; spawnCoinT=0; spawnFeatT=6; cornCount=0;
-    HUD.lead.style.width='50%'; levelName.textContent=levels[0].name; HUD.score.textContent='0'; HUD.corn.textContent='0';
-  }
-
-  function gameOverScreen(msg){
-    running=false; gameOver=true;
-    document.getElementById('overlay').innerHTML = `
-      <div class="card">
-        <h2>${msg}</h2>
-        <p>المسافة: <b>${Math.floor(world.distance)}</b>م • الذرة: <b>${cornCount}</b></p>
-        <button id="restartBtn" class="btn">إعادة</button>
-      </div>`;
-    document.getElementById('overlay').style.display='flex';
-    document.getElementById('restartBtn').onclick=()=>{ document.getElementById('overlay').style.display='none'; reset(); };
-  }
-
-  function updateLevel(){
-    const d=world.distance; let idx=(d>=gates[3])?3:(d>=gates[2])?2:(d>=gates[1])?1:0;
-    if(idx!==world.idx){world.idx=idx; levelName.textContent=levels[idx].name;}
-    world.speed=BASE_SPEED*levels[world.idx].mul; cat.approach=14*levels[world.idx].mul;
-  }
-
-  function spawnObstacle(){ const t=Math.random(); let w=52,h=48,y=groundY-48,color="#7b523c",type='box';
-    if(t<.33){type='box';}
-    else if(t<.66){type='spike'; w=42; h=50; y=groundY-h; color="#9b1c1c";}
-    else{type='pool'; w=84; h=22; y=groundY-h+6; color="#2aa1ff";}
-    obstacles.push({x:W+40,y,w,h,color,type});
-  }
-  function spawnCoin(){ coins.push({x:W+30,y:groundY-(Math.random()<.5?120:70),r:10}); }
-  function spawnFeather(){ feathers.push({x:W+40,y:groundY-140,r:12,time:2.2}); }
-
-  function drawBG(dt){
-    const lv=levels[world.idx]; const grad=ctx.createLinearGradient(0,0,0,H*.7);
-    grad.addColorStop(0,"#8fd3ff"); grad.addColorStop(1,lv.sky); ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
-    world.bgTick += dt*world.speed*.25;
-    for(let i=0;i<3;i++){
-      const yb=groundY-80-i*24; ctx.fillStyle=`rgba(60,${120+i*30},80,${.18+i*.07})`;
-      ctx.beginPath(); const off=(world.bgTick*(.4+i*.25))%W; ctx.moveTo(0,groundY);
-      for(let x=-W;x<=W*2;x+=40){ const X=x-off; const Y=yb+Math.sin((x+i*50)*.01)*20; ctx.lineTo(X,Y); }
-      ctx.lineTo(W,groundY); ctx.closePath(); ctx.fill();
+    // ====== زر التحديث ======
+    async function refreshAll(){
+      refreshBtn.disabled = true;
+      refreshBtn.textContent = 'جارِ التحديث…';
+      await Promise.all([updateAllWeather(), updateAllFX()]);
+      refreshBtn.textContent = 'تحديث البيانات';
+      refreshBtn.disabled = false;
     }
-    ctx.fillStyle=lv.grass; ctx.fillRect(0,groundY,W,H-groundY);
-  }
+    refreshBtn.addEventListener('click', refreshAll);
 
-  function update(dt){
-    if(!running||paused) return;
-
-    const effG=player.flap>0?G*.55:G;
-    player.vy += effG*dt; player.y += player.vy*dt;
-    if(player.y+player.h>=groundY){player.y=groundY-player.h; player.vy=0; player.onGround=true;}
-    if(player.flap>0){player.flap-=dt; if(player.flap<0) player.flap=0;}
-
-    updateLevel();
-    world.distance += (world.speed*dt)/2.4*0.01*100; HUD.score.textContent=Math.floor(world.distance);
-
-    spawnObsT-=dt; spawnCoinT-=dt; spawnFeatT-=dt;
-    if(spawnObsT<=0){ spawnObstacle(); const baseGap=Math.max(.6,1.05-world.idx*.12); spawnObsT=baseGap+Math.random()*.8; }
-    if(spawnCoinT<=0){ spawnCoin(); spawnCoinT=1.2+Math.random()*.8; }
-    if(spawnFeatT<=0){ if(Math.random()<.65) spawnFeather(); spawnFeatT=7+Math.random()*4; }
-
-    drawBG(dt);
-
-    // عوائق
-    for(let i=obstacles.length-1;i>=0;i--){
-      const o=obstacles[i]; o.x -= world.speed*dt;
-      if(o.type==='spike'){ ctx.fillStyle=o.color; ctx.beginPath(); ctx.moveTo(o.x,o.y+o.h); ctx.lineTo(o.x+o.w/2,o.y); ctx.lineTo(o.x+o.w,o.y+o.h); ctx.closePath(); ctx.fill(); }
-      else { ctx.fillStyle=o.color; roundRect(o.x,o.y,o.w,o.h,8,true,false); if(o.type==='pool'){ctx.fillStyle="rgba(255,255,255,.2)"; ctx.fillRect(o.x+6,o.y+4,o.w-12,4);} }
-      if(aabb(player.x,player.y,player.w,player.h,o.x,o.y,o.w,o.h)){ cat.lead -= 90; obstacles.splice(i,1); }
-      if(o.x+o.w<-20) obstacles.splice(i,1);
-    }
-
-    // ذرة
-    for(let i=coins.length-1;i>=0;i--){
-      const c=coins[i]; c.x -= world.speed*dt;
-      ctx.fillStyle="#ffd166"; ctx.beginPath(); ctx.ellipse(c.x,c.y,11.5,10,0,0,Math.PI*2); ctx.fill();
-      ctx.strokeStyle="rgba(255,255,255,.6)"; ctx.lineWidth=2; ctx.stroke();
-      if(aabb(player.x,player.y,player.w,player.h,c.x-10,c.y-10,20,20)){ cornCount++; cat.lead+=36; coins.splice(i,1); }
-      if(c.x<-30) coins.splice(i,1);
-    }
-    HUD.corn.textContent=cornCount;
-
-    // ريشة
-    for(let i=feathers.length-1;i>=0;i--){
-      const f=feathers[i]; f.x -= world.speed*dt;
-      ctx.save(); ctx.translate(f.x,f.y); ctx.rotate(Math.sin((performance.now()/400)+i)*.2);
-      ctx.fillStyle="#b4f5ff"; ctx.beginPath(); ctx.moveTo(0,0); ctx.quadraticCurveTo(22,-8,28,0); ctx.quadraticCurveTo(22,12,0,10); ctx.closePath(); ctx.fill(); ctx.restore();
-      if(aabb(player.x,player.y,player.w,player.h,f.x-16,f.y-10,32,20)){ player.flap=f.time; cat.lead+=24; feathers.splice(i,1); }
-      if(f.x<-40) feathers.splice(i,1);
-    }
-
-    // الفرخة (Sprite)
-    spriteChicken.draw(player.x,player.y,player.w,player.h,dt);
-
-    // القط (Sprite أو fallback رسم بسيط)
-    const catX = player.x - cat.lead - (cat.w - player.w)/2;
-    if(spriteCat.ready){ spriteCat.draw(catX, cat.y, cat.w, cat.h, dt); }
-    else { // رسم افتراضي لحين رفع Sprite
-      ctx.fillStyle="#3a3a45"; roundRect(catX,cat.y,cat.w,cat.h,10,true,false);
-      ctx.fillStyle="#ffd166"; ctx.beginPath(); ctx.arc(catX+20,cat.y+16,5,0,Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(catX+cat.w-20,cat.y+16,5,0,Math.PI*2); ctx.fill();
-    }
-
-    // اقتراب القط + شريط
-    cat.lead -= cat.approach*dt; cat.lead = clamp(cat.lead,0,260);
-    const p=(cat.lead/260)*100; HUD.lead.style.width=p.toFixed(1)+'%';
-    HUD.lead.style.background=(p<25)?'linear-gradient(90deg,var(--danger),#ff8d6c)':(p<50)?'linear-gradient(90deg,#ffb020,#ffd166)':'linear-gradient(90deg,var(--ok),var(--accent))';
-
-    if(cat.lead<=0) gameOverScreen("أمسكك القط! 😿");
-  }
-
-  function loop(ts){ if(!running){last=ts; requestAnimationFrame(loop); return;} const dt=Math.min(.032,(ts-last)/1000||0); last=ts; if(!paused) update(dt); requestAnimationFrame(loop); }
-  function jump(){ if(!running||paused) return; if(player.onGround){player.vy=JUMP_V; player.onGround=false;} }
-
-  window.addEventListener('keydown',e=>{
-    if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault(); jump();}
-    else if(e.code==='KeyP'){paused=!paused;}
-    else if(e.code==='KeyR'){reset();}
-  }, {passive:false});
-  canvas.addEventListener('pointerdown',()=>jump(),{passive:true});
-
-  startBtn.addEventListener('click', ()=>{ overlay.style.display='none'; reset(); });
-  requestAnimationFrame(loop);
-})();
-</script>
-</body>
+    // ====== بدء التشغيل ======
+    (async function init(){
+      renderAll();
+      await refreshAll();
+    })();
+  </script></body>
 </html>
